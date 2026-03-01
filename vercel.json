@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://meetup-yqz3.onrender.com/api/$1"
+    }
+  ]
+}
