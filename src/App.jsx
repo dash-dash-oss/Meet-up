@@ -207,6 +207,7 @@ function App() {
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [accountModalMethod, setAccountModalMethod] = useState(null);
   const [copiedAccount, setCopiedAccount] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const applyFilters = () => {
     let result = [...profiles];
@@ -245,6 +246,16 @@ function App() {
   useEffect(() => {
     applyFilters();
   }, [profiles, searchQuery, filters, sortBy, selectedCategory]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) {
+        setMobileSearchOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleFilterChange = (key, value) => { setFilters({ ...filters, [key]: value }); };
   const clearFilters = () => { setFilters({ ethnicity: 'All', hairColor: 'All', age: 'All', rate: 'All', verified: false, available: false }); setSearchQuery(''); setSelectedCategory('All'); };
@@ -411,11 +422,30 @@ function App() {
     <div style={styles.app}>
       <header style={styles.header} className="app-header">
         <div style={styles.headerContent} className="header-container">
+          <div className="mobile-header-icons">
+            <button
+              type="button"
+              className={`mobile-icon-btn search-toggle ${mobileSearchOpen ? 'active' : ''}`}
+              onClick={() => setMobileSearchOpen(prev => !prev)}
+              aria-label="Toggle search"
+            >
+              <Search />
+            </button>
+            <button
+              type="button"
+              className="mobile-icon-btn filter-toggle"
+              onClick={() => setFilterOpen(true)}
+              aria-label="Open filters"
+            >
+              <FilterList />
+            </button>
+          </div>
+          <h1 className="mobile-header-title">Meet-up</h1>
           <div style={styles.logoWrapper} className="logo-section">
             <h1 style={styles.logo} className="logo">Meetup</h1>
             <span style={styles.tagline} className="logo-subtitle">Premium Companion Network</span>
           </div>
-          <div style={styles.searchContainer} className="search-section">
+          <div style={styles.searchContainer} className={`search-section ${mobileSearchOpen ? 'mobile-open' : ''}`}>
             <div style={{ position: 'relative' }} className="search-wrapper">
               <Search style={styles.searchIcon} className="search-icon" />
               <input 

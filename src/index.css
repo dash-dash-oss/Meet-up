@@ -198,6 +198,40 @@ body {
   gap: 12px;
 }
 
+.mobile-header-icons {
+  display: none;
+}
+
+.mobile-header-title {
+  display: none;
+}
+
+.mobile-icon-btn {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  background: var(--white);
+  color: var(--gray-700);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.mobile-icon-btn:hover {
+  border-color: var(--primary-light);
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.16);
+}
+
+.mobile-icon-btn.active,
+.mobile-icon-btn.filter-toggle {
+  color: var(--white);
+  border-color: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+}
+
 .filter-button {
   display: flex;
   align-items: center;
@@ -1381,6 +1415,51 @@ body {
 @media (max-width: 768px) {
   .header-container {
     padding: 12px 16px;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mobile-header-icons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    order: 2;
+    margin-left: auto;
+  }
+
+  .mobile-header-title {
+    display: block;
+    order: 1;
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .logo-section {
+    display: none !important;
+  }
+
+  .header-actions {
+    display: none !important;
+  }
+
+  .search-section {
+    display: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    order: 2 !important;
+    margin-top: 8px !important;
+  }
+
+  .search-section.mobile-open {
+    display: block !important;
   }
   
   .logo-section {
@@ -1534,6 +1613,700 @@ body {
     width: 44px;
     height: 44px;
     font-size: 20px;
+  }
+}
+
+/* ============================================
+   APP.JSX INLINE-STYLE MOBILE OVERRIDES
+   These rules intentionally use !important to
+   beat inline desktop-first style objects.
+   ============================================ */
+
+@media (max-width: 900px) {
+  .app-header .header-container {
+    padding: 12px 16px !important;
+    gap: 12px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .app-header .logo-section {
+    min-width: 0;
+  }
+
+  .app-header .logo {
+    font-size: 22px !important;
+    line-height: 1.05 !important;
+  }
+
+  .app-header .logo-subtitle {
+    font-size: 10px !important;
+    letter-spacing: 0.4px !important;
+    white-space: nowrap !important;
+  }
+
+  .app-header .search-section {
+    order: 3 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .app-header .search-section input {
+    padding: 12px 14px 12px 42px !important;
+    font-size: 14px !important;
+    min-height: 44px !important;
+  }
+
+  .app-header .search-section .search-icon {
+    left: 14px !important;
+    font-size: 19px !important;
+  }
+
+  .app-header .filter-button {
+    padding: 10px 14px !important;
+    border-radius: 9999px !important;
+    min-height: 42px !important;
+    font-size: 13px !important;
+    gap: 6px !important;
+  }
+
+  .hero-section {
+    padding: 24px 16px !important;
+  }
+
+  .hero-title {
+    font-size: 24px !important;
+    line-height: 1.2 !important;
+    margin-bottom: 10px !important;
+  }
+
+  .hero-subtitle {
+    font-size: 14px !important;
+    margin-bottom: 18px !important;
+  }
+
+  .category-tabs {
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 8px !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 20px !important;
+    scrollbar-width: none !important;
+  }
+
+  .category-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .category-tabs button {
+    flex: 0 0 auto !important;
+    padding: 9px 14px !important;
+    font-size: 12px !important;
+    white-space: nowrap !important;
+  }
+
+  .hero-stats {
+    width: 100% !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .hero-stats .stat-item {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+  }
+
+  .hero-stats .stat-number {
+    font-size: 22px !important;
+  }
+
+  .hero-stats .stat-label {
+    font-size: 11px !important;
+  }
+
+  .main-content {
+    padding: 18px 12px !important;
+  }
+
+  .results-bar {
+    margin-bottom: 18px !important;
+    padding: 14px 12px !important;
+    border-radius: 14px !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .results-count {
+    font-size: 16px !important;
+  }
+
+  .sort-select {
+    width: 100% !important;
+    min-height: 44px !important;
+    font-size: 14px !important;
+  }
+
+  .profiles-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .profile-card {
+    border-radius: 18px !important;
+  }
+
+  .card-image-container {
+    height: 270px !important;
+  }
+
+  .card-badges {
+    top: 12px !important;
+    left: 12px !important;
+    right: 12px !important;
+  }
+
+  .featured-tag,
+  .verified-tag,
+  .availability-tag {
+    font-size: 10px !important;
+    padding: 5px 10px !important;
+  }
+
+  .availability-tag {
+    bottom: 12px !important;
+    left: 12px !important;
+  }
+
+  .card-body {
+    padding: 14px !important;
+  }
+
+  .card-header {
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .profile-name {
+    font-size: 20px !important;
+    line-height: 1.2 !important;
+  }
+
+  .profile-price {
+    text-align: left !important;
+  }
+
+  .price-amount {
+    font-size: 22px !important;
+  }
+
+  .card-rating {
+    margin-bottom: 12px !important;
+  }
+
+  .reviews-count {
+    font-size: 12px !important;
+  }
+
+  .card-services {
+    gap: 6px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .service-tag {
+    font-size: 11px !important;
+    padding: 5px 10px !important;
+  }
+
+  .card-actions {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .card-actions button,
+  .btn-view,
+  .btn-book {
+    width: 100% !important;
+    min-height: 44px !important;
+    padding: 12px 14px !important;
+  }
+
+  .filter-drawer {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .filter-header {
+    padding: 16px !important;
+  }
+
+  .filter-title {
+    font-size: 20px !important;
+  }
+
+  .filter-content {
+    padding: 16px !important;
+  }
+
+  .filter-chips {
+    gap: 8px !important;
+  }
+
+  .chip {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+  }
+
+  .filter-actions {
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .modal-overlay {
+    padding: 8px !important;
+    align-items: stretch !important;
+  }
+
+  .modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    border-radius: 14px !important;
+    margin: 0 !important;
+  }
+
+  .modal-header {
+    padding: 14px 14px !important;
+  }
+
+  .modal-title {
+    font-size: 20px !important;
+  }
+
+  .modal-body {
+    padding: 14px !important;
+    gap: 14px !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  .modal-image {
+    max-height: 300px !important;
+    object-position: center top !important;
+  }
+
+  .detail-row {
+    gap: 10px !important;
+  }
+
+  .detail-label,
+  .detail-value {
+    font-size: 13px !important;
+  }
+
+  .modal-actions {
+    padding: 12px 14px calc(12px + env(safe-area-inset-bottom)) !important;
+    gap: 10px !important;
+    flex-direction: column !important;
+  }
+
+  .modal-actions button {
+    width: 100% !important;
+    min-height: 44px !important;
+    padding: 12px !important;
+  }
+
+  .booking-header {
+    padding: 14px !important;
+    border-radius: 12px !important;
+  }
+
+  .booking-price {
+    font-size: 26px !important;
+  }
+
+  .booking-subtitle {
+    font-size: 13px !important;
+  }
+
+  .account-modal {
+    align-items: flex-end !important;
+    padding: 8px !important;
+  }
+
+  .account-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    border-radius: 16px 16px 0 0 !important;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .account-title {
+    font-size: 20px !important;
+  }
+
+  .account-detail-value {
+    font-size: 15px !important;
+  }
+
+  .account-instruction {
+    padding: 8px 10px !important;
+  }
+
+  .account-instruction-index {
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 12px !important;
+  }
+
+  .account-instruction p {
+    font-size: 12px !important;
+  }
+
+  .payment-card {
+    margin-top: 8px !important;
+    padding: 20px 14px !important;
+    border-radius: 16px !important;
+  }
+
+  .payment-title {
+    font-size: 24px !important;
+  }
+
+  .total-amount {
+    padding: 14px !important;
+  }
+
+  .amount-value {
+    font-size: 28px !important;
+  }
+
+  .payment-option {
+    padding: 14px 12px !important;
+    border-radius: 12px !important;
+  }
+
+  .method-icon {
+    width: 44px !important;
+    height: 44px !important;
+    margin-right: 12px !important;
+  }
+
+  .method-info h4 {
+    font-size: 14px !important;
+  }
+
+  .method-info p {
+    font-size: 12px !important;
+  }
+
+  .submit-button,
+  .copy-button {
+    min-height: 44px !important;
+    font-size: 14px !important;
+  }
+
+  .app-footer {
+    padding: 36px 14px calc(20px + env(safe-area-inset-bottom)) !important;
+    margin-top: 44px !important;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+  }
+
+  .footer-logo {
+    font-size: 24px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .footer-description,
+  .footer-links a,
+  .footer-links li,
+  .footer-bottom,
+  .footer-title {
+    font-size: 13px !important;
+  }
+
+  .snackbar {
+    width: calc(100vw - 24px) !important;
+    left: 12px !important;
+    right: 12px !important;
+    transform: none !important;
+    bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+    text-align: center !important;
+    padding: 12px 14px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .header-container {
+    padding: 10px 12px !important;
+  }
+
+  .mobile-icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+  }
+
+  .mobile-header-title {
+    font-size: 20px;
+  }
+
+  .app-header .logo-subtitle {
+    display: none !important;
+  }
+
+  .app-header .filter-button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .hero-title {
+    font-size: 22px !important;
+  }
+
+  .hero-stats {
+    gap: 8px !important;
+  }
+
+  .hero-stats .stat-number {
+    font-size: 20px !important;
+  }
+
+  .hero-stats .stat-label {
+    font-size: 10px !important;
+  }
+
+  .price-amount {
+    font-size: 20px !important;
+  }
+}
+
+/* 414px phones (Plus/Max class) */
+@media (max-width: 414px) {
+  .app-header .header-container {
+    padding: 12px 14px !important;
+  }
+
+  .hero-section {
+    padding: 22px 14px !important;
+  }
+
+  .main-content {
+    padding: 16px 10px !important;
+  }
+
+  .card-image-container {
+    height: 262px !important;
+  }
+
+  .modal-title {
+    font-size: 19px !important;
+  }
+}
+
+/* 390px phones (newer iPhone baseline) */
+@media (max-width: 390px) {
+  .app-header .logo {
+    font-size: 20px !important;
+  }
+
+  .app-header .filter-button {
+    font-size: 12px !important;
+    padding: 10px 12px !important;
+  }
+
+  .hero-title {
+    font-size: 21px !important;
+  }
+
+  .hero-subtitle {
+    font-size: 13px !important;
+  }
+
+  .category-tabs button {
+    font-size: 11px !important;
+    padding: 8px 12px !important;
+  }
+
+  .results-count {
+    font-size: 15px !important;
+  }
+
+  .card-image-container {
+    height: 250px !important;
+  }
+
+  .profile-name {
+    font-size: 18px !important;
+  }
+
+  .price-amount {
+    font-size: 19px !important;
+  }
+
+  .payment-title {
+    font-size: 22px !important;
+  }
+
+  .amount-value {
+    font-size: 24px !important;
+  }
+}
+
+/* 360px phones (common Android baseline) */
+@media (max-width: 360px) {
+  .app-header .header-container {
+    padding: 10px 12px !important;
+    gap: 10px !important;
+  }
+
+  .app-header .search-section input {
+    font-size: 13px !important;
+    padding: 11px 12px 11px 38px !important;
+  }
+
+  .app-header .search-section .search-icon {
+    left: 12px !important;
+    font-size: 18px !important;
+  }
+
+  .hero-section {
+    padding: 20px 12px !important;
+  }
+
+  .hero-title {
+    font-size: 20px !important;
+  }
+
+  .hero-stats .stat-number {
+    font-size: 18px !important;
+  }
+
+  .main-content {
+    padding: 14px 8px !important;
+  }
+
+  .results-bar {
+    padding: 12px 10px !important;
+  }
+
+  .card-image-container {
+    height: 238px !important;
+  }
+
+  .card-body {
+    padding: 12px !important;
+  }
+
+  .service-tag {
+    font-size: 10px !important;
+    padding: 4px 9px !important;
+  }
+
+  .modal-overlay {
+    padding: 6px !important;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-actions {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .payment-card {
+    padding: 16px 12px !important;
+  }
+
+  .payment-option {
+    padding: 12px 10px !important;
+  }
+}
+
+/* 320px phones (small legacy devices) */
+@media (max-width: 320px) {
+  .mobile-header-title {
+    font-size: 18px;
+  }
+
+  .app-header .logo {
+    font-size: 18px !important;
+  }
+
+  .app-header .filter-button {
+    min-height: 40px !important;
+    padding: 8px 10px !important;
+    font-size: 11px !important;
+  }
+
+  .hero-title {
+    font-size: 18px !important;
+  }
+
+  .hero-subtitle {
+    font-size: 12px !important;
+  }
+
+  .hero-stats {
+    gap: 6px !important;
+  }
+
+  .hero-stats .stat-number {
+    font-size: 16px !important;
+  }
+
+  .hero-stats .stat-label {
+    font-size: 9px !important;
+  }
+
+  .results-count {
+    font-size: 14px !important;
+  }
+
+  .sort-select {
+    font-size: 13px !important;
+  }
+
+  .card-image-container {
+    height: 220px !important;
+  }
+
+  .profile-name {
+    font-size: 17px !important;
+  }
+
+  .price-amount {
+    font-size: 18px !important;
+  }
+
+  .card-actions button,
+  .btn-view,
+  .btn-book {
+    min-height: 42px !important;
+    font-size: 13px !important;
+  }
+
+  .modal-title {
+    font-size: 18px !important;
+  }
+
+  .account-title {
+    font-size: 18px !important;
+  }
+
+  .amount-value {
+    font-size: 22px !important;
+  }
+
+  .app-footer {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
   }
 }
 
