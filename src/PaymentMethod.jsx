@@ -94,11 +94,11 @@ const PaymentMethod = () => {
       sx={{
         minHeight: '100vh',
         background: 'linear-gradient(135deg, #ffffff 0%, #fdf2f8 50%, #fce7f3 100%)',
-        py: 4,
-        px: 2,
+        py: { xs: 2.5, sm: 4 },
+        px: { xs: 1.5, sm: 2 },
       }}
     >
-      <Box p={3} maxWidth={800} mx="auto">
+      <Box sx={{ p: { xs: 1.5, sm: 3 }, maxWidth: 800, mx: 'auto' }}>
       {/* Back Button at Top */}
       <IconButton 
         onClick={() => navigate(-1)} 
@@ -108,11 +108,11 @@ const PaymentMethod = () => {
       </IconButton>
 
       <Typography
-        variant="h4"
         fontWeight="bold"
         textAlign="center"
         mb={2}
         sx={{
+          fontSize: { xs: '1.6rem', sm: '2.125rem' },
           background: 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
@@ -126,9 +126,9 @@ const PaymentMethod = () => {
         sx={{ 
           background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
           color: 'white',
-          p: 2, 
+          p: { xs: 1.5, sm: 2 },
           borderRadius: 2, 
-          mb: 4,
+          mb: { xs: 2.5, sm: 4 },
           textAlign: 'center',
           boxShadow: '0 8px 24px rgba(236, 72, 153, 0.28)'
         }}
@@ -136,7 +136,7 @@ const PaymentMethod = () => {
         <Typography variant="caption" sx={{ textTransform: 'uppercase', letterSpacing: 1, opacity: 0.9 }}>
           Total Amount
         </Typography>
-        <Typography variant="h4" fontWeight={800}>
+        <Typography sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' }, fontWeight: 800 }}>
           ${total}
         </Typography>
       </Box>
@@ -149,10 +149,12 @@ const PaymentMethod = () => {
               <Card
                 key={option.key}
                 sx={{
-                  p: 2,
+                  p: { xs: 1.5, sm: 2 },
                   mb: 2,
                   display: 'flex',
-                  alignItems: 'center',
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  alignItems: { xs: 'flex-start', sm: 'center' },
+                  gap: { xs: 1, sm: 0 },
                   cursor: option.available ? 'pointer' : 'not-allowed',
                   opacity: option.available ? 1 : 0.6,
                   borderRadius: 3,
@@ -164,9 +166,9 @@ const PaymentMethod = () => {
               >
                 <Box
                   sx={{
-                    mr: 2,
-                    width: 42,
-                    height: 42,
+                    mr: { xs: 0, sm: 2 },
+                    width: { xs: 38, sm: 42 },
+                    height: { xs: 38, sm: 42 },
                     borderRadius: 2,
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -176,13 +178,27 @@ const PaymentMethod = () => {
                 >
                   <Icon sx={{ color: option.iconColor }} />
                 </Box>
-                <Box flexGrow={1}>
+                <Box sx={{ flexGrow: 1, width: { xs: '100%', sm: 'auto' } }}>
                   <Typography fontWeight="bold">{option.title}</Typography>
                   <Typography variant="body2" color="text.secondary">{option.desc}</Typography>
                 </Box>
-                <Alert severity={option.available ? 'success' : 'warning'} sx={{ ml: 1 }}>
+                <Box
+                  sx={{
+                    ml: { xs: 0, sm: 1 },
+                    mt: { xs: 0.5, sm: 0 },
+                    px: 1.25,
+                    py: 0.5,
+                    borderRadius: 999,
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    color: option.available ? '#166534' : '#92400e',
+                    bgcolor: option.available ? '#dcfce7' : '#fef3c7',
+                    border: option.available ? '1px solid #bbf7d0' : '1px solid #fde68a',
+                    alignSelf: { xs: 'flex-start', sm: 'center' },
+                  }}
+                >
                   {option.available ? 'Available' : 'Unavailable'}
-                </Alert>
+                </Box>
               </Card>
             );
           })}
@@ -195,6 +211,7 @@ const PaymentMethod = () => {
           startIcon={<ArrowBack />}
           onClick={() => navigate(-1)}
           sx={{
+            width: { xs: '100%', sm: 'auto' },
             borderColor: '#ec4899',
             color: '#db2777',
             '&:hover': { borderColor: '#db2777', backgroundColor: '#fff1f8' },
