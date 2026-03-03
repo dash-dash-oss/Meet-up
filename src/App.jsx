@@ -66,7 +66,8 @@ const styles = {
   header: { position: 'sticky', top: 0, backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(20px)', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', zIndex: 1000, borderBottom: '1px solid #f3f4f6' },
   headerContent: { maxWidth: 1400, margin: '0 auto', padding: '16px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24 },
   logoWrapper: { display: 'flex', alignItems: 'center', gap: 12 },
-  logo: { fontSize: 28, fontWeight: 800, background: 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: 0 },
+  logo: { width: 34, height: 34, display: 'block' },
+  logoText: { fontSize: 28, fontWeight: 800, background: 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: 0, lineHeight: 1 },
   tagline: { fontSize: 12, color: colors.gray, fontWeight: 500, textTransform: 'uppercase', letterSpacing: 1 },
   searchContainer: { flex: 1, maxWidth: 500, position: 'relative' },
   searchInput: { width: '100%', padding: '14px 20px 14px 50px', borderRadius: 50, border: '2px solid #e5e7eb', backgroundColor: '#f9fafb', fontSize: 14, outline: 'none', transition: 'all 0.3s' },
@@ -129,6 +130,10 @@ const styles = {
   closeBtn: { background: '#f3f4f6', border: 'none', width: 40, height: 40, borderRadius: 12, fontSize: 20, cursor: 'pointer', color: '#4b5563', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   modalBody: { padding: 32, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32 },
   modalImage: { width: '100%', borderRadius: 16, objectFit: 'cover', maxHeight: 400 },
+  fullImageOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.88)', zIndex: 5000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  fullImageContent: { position: 'relative', maxWidth: '96vw', maxHeight: '94vh' },
+  fullImage: { maxWidth: '96vw', maxHeight: '94vh', objectFit: 'contain', borderRadius: 12, boxShadow: '0 20px 50px rgba(0,0,0,0.45)' },
+  fullImageClose: { position: 'absolute', top: -12, right: -12, width: 36, height: 36, borderRadius: 9999, border: 'none', background: '#fff', color: '#111827', fontSize: 22, lineHeight: 1, cursor: 'pointer', boxShadow: '0 6px 20px rgba(0,0,0,0.3)' },
   modalDetails: { padding: '0 0' },
   modalSection: { marginBottom: 24 },
   modalSectionTitle: { fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, color: '#6b7280', marginBottom: 12 },
@@ -211,6 +216,7 @@ function App() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [fullImageOpen, setFullImageOpen] = useState(false);
   const [orderOpen, setOrderOpen] = useState(false);
   const [orderForm, setOrderForm] = useState({ name: '', email: '', phone: '', date: 'Flexible', duration: '1 day', notes: '', agreeToTerms: false });
   const [snackbar, setSnackbar] = useState({ open: false, message: '' });
@@ -300,6 +306,7 @@ function App() {
   const clearFilters = () => { setFilters({ ethnicity: 'All', hairColor: 'All', age: 'All', rate: 'All', verified: false, available: false }); setSearchQuery(''); setSelectedCategory('All'); };
   const handleSearch = (e) => { setSearchQuery(e.target.value); };
   const handleViewProfile = (profile) => { setSelectedProfile(profile); setDetailsOpen(true); };
+  const handleCloseProfileModal = () => { setDetailsOpen(false); setFullImageOpen(false); };
   const handleOrder = (profile) => { setSelectedProfile(profile); setOrderOpen(true); };
   const handleSubmitOrder = () => {
     if (!orderForm.name.trim() || !orderForm.email.trim() || !orderForm.agreeToTerms) {
@@ -522,7 +529,8 @@ function App() {
           </div>
           <h1 className="mobile-header-title">Meet-up</h1>
           <div style={styles.logoWrapper} className="logo-section">
-            <h1 style={styles.logo} className="logo">Meetup</h1>
+            <img src="/meetup-logo.svg" alt="Meetup logo" style={styles.logo} className="logo" />
+            <h1 style={styles.logoText}>Meetup</h1>
             <span style={styles.tagline} className="logo-subtitle">Premium Companion Network</span>
           </div>
           <div style={styles.searchContainer} className={`search-section ${mobileSearchOpen ? 'mobile-open' : ''}`}>
@@ -739,23 +747,25 @@ function App() {
       )}
 
       {detailsOpen && selectedProfile && (
-        <div style={styles.modalOverlay} className="modal-overlay" onClick={() => setDetailsOpen(false)}>
+        <div style={styles.modalOverlay} className="modal-overlay" onClick={handleCloseProfileModal}>
           <div style={styles.modalContent} className="modal-content profile-modal-content" onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader} className="modal-header">
               <h2 style={styles.modalTitle} className="modal-title">{selectedProfile.name}, {selectedProfile.age}</h2>
-              <button style={styles.closeBtn} className="close-btn" onClick={() => setDetailsOpen(false)}>×</button>
+              <button style={styles.closeBtn} className="close-btn" onClick={handleCloseProfileModal}>×</button>
             </div>
             <div style={styles.modalBody} className="modal-body">
               <div>
                 <img 
                   src={selectedProfile.image} 
                   alt={selectedProfile.name} 
-                  style={styles.modalImage} 
+                  style={{ ...styles.modalImage, cursor: 'zoom-in' }} 
                   className="modal-image"
                   loading="lazy"
                   decoding="async"
+                  onClick={() => setFullImageOpen(true)}
                   onError={(e) => { e.target.src = FALLBACK_IMAGE; }} 
                 />
+                <p style={{ marginTop: 10, fontSize: 12, color: '#6b7280', textAlign: 'center' }}>Tap image to view full size</p>
               </div>
               <div style={styles.modalDetails} className="modal-details">
                 <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -809,18 +819,31 @@ function App() {
               <button 
                 style={{ ...styles.viewBtn, flex: 'none', padding: '12px 24px' }} 
                 className="btn-close"
-                onClick={() => setDetailsOpen(false)}
+                onClick={handleCloseProfileModal}
               >
                 Close
               </button>
               <button 
                 style={styles.modalBookBtn} 
                 className="btn-book-now"
-                onClick={() => { setDetailsOpen(false); handleOrder(selectedProfile); }}
+                onClick={() => { handleCloseProfileModal(); handleOrder(selectedProfile); }}
               >
                 Book Now - ${selectedProfile.rate}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {fullImageOpen && selectedProfile && (
+        <div style={styles.fullImageOverlay} onClick={() => setFullImageOpen(false)}>
+          <div style={styles.fullImageContent} onClick={(e) => e.stopPropagation()}>
+            <button style={styles.fullImageClose} onClick={() => setFullImageOpen(false)} aria-label="Close full image">×</button>
+            <img
+              src={selectedProfile.image}
+              alt={`${selectedProfile.name} full size`}
+              style={styles.fullImage}
+              onError={(e) => { e.target.src = FALLBACK_IMAGE; }}
+            />
           </div>
         </div>
       )}

@@ -1,6 +1,9 @@
 import { Box, Typography, Card, Button, Alert, Grid, IconButton } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import cashappLogo from './assets/payment/cashapp.svg';
+import paypalLogo from './assets/payment/paypal.svg';
+import bitcoinLogo from './assets/payment/bitcoin.svg';
 
 const BOOKING_AMOUNT_MIN = 40;
 const BOOKING_AMOUNT_MAX = 1000;
@@ -24,7 +27,7 @@ const PaymentMethod = () => {
       key: 'cashapp',
       title: 'CashApp',
       desc: 'Pay with CashApp balance',
-      logo: 'https://upload.wikimedia.org/wikipedia/commons/c/c3/Cash_App_logo.svg',
+      logo: cashappLogo,
       color: '#00d632',
       available: false,
     },
@@ -32,7 +35,7 @@ const PaymentMethod = () => {
       key: 'paypal',
       title: 'PayPal',
       desc: 'Pay with PayPal',
-      logo: 'https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg',
+      logo: paypalLogo,
       color: '#003087',
       available: true,
     },
@@ -40,7 +43,7 @@ const PaymentMethod = () => {
       key: 'bitcoin',
       title: 'Bitcoin',
       desc: 'Cryptocurrency payment',
-      logo: 'https://upload.wikimedia.org/wikipedia/commons/4/46/Bitcoin.svg',
+      logo: bitcoinLogo,
       color: '#f7931a',
       available: true,
     },
