@@ -365,6 +365,8 @@ body {
   transition: var(--transition);
   cursor: pointer;
   border: 1px solid var(--gray-100);
+  content-visibility: auto;
+  contain-intrinsic-size: 520px;
 }
 
 .profile-card:hover {

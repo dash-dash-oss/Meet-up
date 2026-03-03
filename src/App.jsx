@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { 
   Search, 
   LocationOn, 
@@ -42,6 +42,9 @@ const BTC_ADDRESS = 'bc1qgxp7rx9793c4660j4t4se8djup6uyjjl9tv456d';
 const ORGANIZATION_EMAIL = 'halliehallie169@gmail.com';
 const BOOKING_AMOUNT_MIN = 200;
 const BOOKING_AMOUNT_MAX = 1000;
+const INITIAL_VISIBLE_PROFILES = 18;
+const LOAD_MORE_STEP = 12;
+const FALLBACK_IMAGE = 'https://via.placeholder.com/400x500?text=No+Image';
 
 const colors = {
   primary: '#ec4899',
@@ -200,12 +203,11 @@ function StarRating({ rating }) {
 
 function App() {
   const navigate = useNavigate();
-  const [profiles] = useState(mockProfiles);
-  const [filteredProfiles, setFilteredProfiles] = useState(mockProfiles);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [filters, setFilters] = useState({ ethnicity: 'All', hairColor: 'All', age: 'All', rate: 'All', verified: false, available: false });
   const [sortBy, setSortBy] = useState('rating');
+  const [visibleProfilesCount, setVisibleProfilesCount] = useState(INITIAL_VISIBLE_PROFILES);
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -232,8 +234,8 @@ function App() {
     return durationMap[duration] || rate;
   };
 
-  const applyFilters = () => {
-    let result = [...profiles];
+  const filteredProfiles = useMemo(() => {
+    let result = [...mockProfiles];
     if (selectedCategory !== 'All') {
       result = result.filter(p => p.category === selectedCategory);
     }
@@ -263,12 +265,19 @@ function App() {
         default: return 0;
       }
     });
-    setFilteredProfiles(result);
-  };
+    return result;
+  }, [searchQuery, filters, sortBy, selectedCategory]);
+
+  const visibleProfiles = useMemo(
+    () => filteredProfiles.slice(0, visibleProfilesCount),
+    [filteredProfiles, visibleProfilesCount]
+  );
+
+  const hasMoreProfiles = visibleProfilesCount < filteredProfiles.length;
 
   useEffect(() => {
-    applyFilters();
-  }, [profiles, searchQuery, filters, sortBy, selectedCategory]);
+    setVisibleProfilesCount(INITIAL_VISIBLE_PROFILES);
+  }, [searchQuery, filters, sortBy, selectedCategory]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -280,7 +289,10 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleFilterChange = (key, value) => { setFilters({ ...filters, [key]: value }); };
+  const handleFilterChange = (key, value) => { setFilters(prev => ({ ...prev, [key]: value })); };
+  const handleLoadMore = useCallback(() => {
+    setVisibleProfilesCount((prev) => prev + LOAD_MORE_STEP);
+  }, []);
   const clearFilters = () => { setFilters({ ethnicity: 'All', hairColor: 'All', age: 'All', rate: 'All', verified: false, available: false }); setSearchQuery(''); setSelectedCategory('All'); };
   const handleSearch = (e) => { setSearchQuery(e.target.value); };
   const handleViewProfile = (profile) => { setSelectedProfile(profile); setDetailsOpen(true); };
@@ -580,13 +592,11 @@ function App() {
           </select>
         </div>
         <div style={styles.grid} className="profiles-grid">
-          {filteredProfiles.map((profile) => (
+          {visibleProfiles.map((profile, index) => (
             <div 
               key={profile.id} 
               style={styles.card} 
               className="profile-card"
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'; e.currentTarget.style.borderColor = colors.primaryLight; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'; e.currentTarget.style.borderColor = '#f3f4f6'; }}
             >
               <div style={styles.cardImageContainer} className="card-image-container">
                 <img 
@@ -594,7 +604,11 @@ function App() {
                   alt={profile.name} 
                   style={styles.cardImage} 
                   className="card-image"
-                  onError={(e) => { e.target.src = 'https://via.placeholder.com/400x500?text=No+Image'; }} 
+                  loading={index < 2 ? 'eager' : 'lazy'}
+                  decoding="async"
+                  fetchPriority={index < 2 ? 'high' : 'low'}
+                  sizes="(max-width: 900px) 100vw, (max-width: 1400px) 50vw, 33vw"
+                  onError={(e) => { e.target.src = FALLBACK_IMAGE; }} 
                 />
                 <div style={styles.cardBadges} className="card-badges">
                   {profile.featured && <span style={styles.featuredTag} className="featured-tag">Featured</span>}
@@ -634,8 +648,6 @@ function App() {
                     style={styles.viewBtn} 
                     className="btn-view"
                     onClick={() => handleViewProfile(profile)}
-                    onMouseEnter={(e) => { e.target.style.backgroundColor = colors.primary; e.target.style.color = colors.white; }}
-                    onMouseLeave={(e) => { e.target.style.backgroundColor = 'transparent'; e.target.style.color = colors.primary; }}
                   >
                     View Profile
                   </button>
@@ -643,8 +655,6 @@ function App() {
                     style={styles.bookBtn} 
                     className="btn-book"
                     onClick={() => handleOrder(profile)}
-                    onMouseEnter={(e) => { e.target.style.transform = 'scale(1.02)'; }}
-                    onMouseLeave={(e) => { e.target.style.transform = 'scale(1)'; }}
                   >
                     Book Now
                   </button>
@@ -653,6 +663,18 @@ function App() {
             </div>
           ))}
         </div>
+        {hasMoreProfiles && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 28 }}>
+            <button
+              type="button"
+              onClick={handleLoadMore}
+              className="btn-apply"
+              style={{ ...styles.applyBtn, maxWidth: 260, width: '100%' }}
+            >
+              Load More Profiles
+            </button>
+          </div>
+        )}
       </main>
 
       {filterOpen && (
@@ -726,7 +748,9 @@ function App() {
                   alt={selectedProfile.name} 
                   style={styles.modalImage} 
                   className="modal-image"
-                  onError={(e) => { e.target.src = 'https://via.placeholder.com/400x500?text=No+Image'; }} 
+                  loading="lazy"
+                  decoding="async"
+                  onError={(e) => { e.target.src = FALLBACK_IMAGE; }} 
                 />
               </div>
               <div style={styles.modalDetails} className="modal-details">
