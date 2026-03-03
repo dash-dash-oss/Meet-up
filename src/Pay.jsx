@@ -24,9 +24,19 @@ import { useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 
 const BTC_ADDRESS = 'bc1qgxp7rx9793c4660j4t4se8djup6uyjjl9tv456d';
-const CASHAPP_ACCOUNT = '$meetup123';
-const PAYPAL_ACCOUNT = 'meetup@paypal.com';
+const CASHAPP_DETAILS = {
+  name: 'Rhonda Kilgore',
+  address: '$RhondaKilgore0',
+  note: '',
+};
+const PAYPAL_DETAILS = {
+  name: 'Benjamin Smith',
+  address: 'maxbenjamin802@gmail.com',
+  note: 'Friends and Family only',
+};
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+const BOOKING_AMOUNT_MIN = 200;
+const BOOKING_AMOUNT_MAX = 1000;
 
 const methodConfig = {
   bitcoin: {
@@ -42,16 +52,16 @@ const methodConfig = {
     icon: AccountBalanceWallet,
     color: '#00d632',
     bgColor: 'rgba(0, 214, 50, 0.1)',
-    address: CASHAPP_ACCOUNT,
-    label: 'CashApp Tag',
+    accountDetails: CASHAPP_DETAILS,
+    label: 'CashApp Details',
   },
   paypal: {
     name: 'PayPal',
     icon: Payments,
     color: '#003087',
     bgColor: 'rgba(0, 48, 135, 0.1)',
-    address: PAYPAL_ACCOUNT,
-    label: 'PayPal Email',
+    accountDetails: PAYPAL_DETAILS,
+    label: 'PayPal Details',
   },
   card: {
     name: 'Credit/Debit Card',
@@ -80,7 +90,7 @@ const Pay = () => {
   });
   const [proofImage, setProofImage] = useState('');
   const [proofFileName, setProofFileName] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [copiedField, setCopiedField] = useState('');
   const [copiedAmount, setCopiedAmount] = useState(false);
   const [showQr, setShowQr] = useState(false);
 
@@ -108,10 +118,10 @@ const Pay = () => {
   const config = methodConfig[method] || methodConfig.bitcoin;
   const MethodIcon = config.icon;
 
-  const copyAddress = () => {
-    navigator.clipboard.writeText(config.address);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const copyFieldValue = (value, key) => {
+    navigator.clipboard.writeText(value);
+    setCopiedField(key);
+    setTimeout(() => setCopiedField(''), 2000);
   };
 
   const copyAmount = () => {
@@ -123,6 +133,10 @@ const Pay = () => {
   const handlePayment = () => {
     if (!customer || !profile || !hours) {
       setError('Missing order details. Please restart checkout.');
+      return;
+    }
+    if (total < BOOKING_AMOUNT_MIN || total > BOOKING_AMOUNT_MAX) {
+      setError(`Booking amount must be between $${BOOKING_AMOUNT_MIN} and $${BOOKING_AMOUNT_MAX}.`);
       return;
     }
     setError('');
@@ -140,6 +154,10 @@ const Pay = () => {
   };
 
   const handleSubmitPayment = async () => {
+    if (total < BOOKING_AMOUNT_MIN || total > BOOKING_AMOUNT_MAX) {
+      setError(`Booking amount must be between $${BOOKING_AMOUNT_MIN} and $${BOOKING_AMOUNT_MAX}.`);
+      return;
+    }
     if (requiresCard) {
       if (!cardDetails.cardholderName.trim()) {
         setError('Cardholder name is required.');
@@ -412,25 +430,55 @@ const Pay = () => {
                       </Typography>
                     </Box>
                   )}
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Typography
-                      sx={{
-                        fontSize: '0.9rem',
-                        wordBreak: 'break-all',
-                        fontWeight: 500,
-                        fontFamily: 'monospace',
-                      }}
-                    >
-                      {config.address}
-                    </Typography>
-                    <Button
-                      size="small"
-                      onClick={copyAddress}
-                      sx={{ minWidth: 'auto', p: 0.5, color: copied ? '#22c55e' : config.color }}
-                    >
-                      {copied ? <CheckCircleIcon fontSize="small" /> : <ContentCopyIcon fontSize="small" />}
-                    </Button>
-                  </Box>
+                  {method === 'bitcoin' && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Typography
+                        sx={{
+                          fontSize: '0.9rem',
+                          wordBreak: 'break-all',
+                          fontWeight: 500,
+                          fontFamily: 'monospace',
+                        }}
+                      >
+                        {config.address}
+                      </Typography>
+                      <Button
+                        size="small"
+                        onClick={() => copyFieldValue(config.address, 'bitcoin-address')}
+                        sx={{ minWidth: 'auto', p: 0.5, color: copiedField === 'bitcoin-address' ? '#22c55e' : config.color }}
+                      >
+                        {copiedField === 'bitcoin-address' ? <CheckCircleIcon fontSize="small" /> : <ContentCopyIcon fontSize="small" />}
+                      </Button>
+                    </Box>
+                  )}
+                  {(method === 'cashapp' || method === 'paypal') && (
+                    <Box sx={{ display: 'grid', gap: 1.2 }}>
+                      {[
+                        { key: 'name', label: 'Name', value: config.accountDetails?.name || '' },
+                        { key: 'address', label: method === 'paypal' ? 'Email' : 'CashTag', value: config.accountDetails?.address || '' },
+                        { key: 'note', label: 'Note', value: config.accountDetails?.note || '' },
+                      ]
+                        .filter((field) => field.value)
+                        .map((field) => {
+                          const fieldKey = `${method}-${field.key}`;
+                          return (
+                            <Box key={field.key} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                              <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary', minWidth: 62 }}>{field.label}</Typography>
+                              <Typography sx={{ fontSize: '0.9rem', wordBreak: 'break-all', fontWeight: 500, fontFamily: 'monospace', flex: 1 }}>
+                                {field.value}
+                              </Typography>
+                              <Button
+                                size="small"
+                                onClick={() => copyFieldValue(field.value, fieldKey)}
+                                sx={{ minWidth: 'auto', p: 0.5, color: copiedField === fieldKey ? '#22c55e' : config.color }}
+                              >
+                                {copiedField === fieldKey ? <CheckCircleIcon fontSize="small" /> : <ContentCopyIcon fontSize="small" />}
+                              </Button>
+                            </Box>
+                          );
+                        })}
+                    </Box>
+                  )}
                 </Box>
               </>
             )}

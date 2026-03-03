@@ -2,6 +2,9 @@ import { Box, Typography, Card, Button, Alert, Grid, IconButton } from '@mui/mat
 import { AccountBalanceWallet, CurrencyBitcoin, ArrowBack, Payments } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+const BOOKING_AMOUNT_MIN = 200;
+const BOOKING_AMOUNT_MAX = 1000;
+
 const PaymentMethod = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -65,6 +68,19 @@ const PaymentMethod = () => {
   };
   
   const total = getTotal();
+
+  if (total < BOOKING_AMOUNT_MIN || total > BOOKING_AMOUNT_MAX) {
+    return (
+      <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Booking amount must be between ${BOOKING_AMOUNT_MIN} and ${BOOKING_AMOUNT_MAX}. Current amount: ${total}.
+        </Alert>
+        <Button variant="outlined" startIcon={<ArrowBack />} onClick={() => navigate(-1)}>
+          Back to Booking
+        </Button>
+      </Box>
+    );
+  }
 
   return (
     <Box

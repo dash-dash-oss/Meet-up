@@ -13,6 +13,8 @@ const ALLOWED_ORIGINS = [FRONTEND_ORIGIN, ...ADDITIONAL_ALLOWED_ORIGINS];
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_FROM = process.env.RESEND_FROM;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+const BOOKING_AMOUNT_MIN = 200;
+const BOOKING_AMOUNT_MAX = 1000;
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -68,6 +70,20 @@ app.post('/api/send-order', upload.single('screenshot'), async (req, res) => {
       });
     }
 
+    const parsedAmount = Number(amount);
+    if (!Number.isFinite(parsedAmount)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid booking amount.'
+      });
+    }
+    if (parsedAmount < BOOKING_AMOUNT_MIN || parsedAmount > BOOKING_AMOUNT_MAX) {
+      return res.status(400).json({
+        success: false,
+        message: `Booking amount must be between $${BOOKING_AMOUNT_MIN} and $${BOOKING_AMOUNT_MAX}.`
+      });
+    }
+
     // Build email content
     const emailContent = `
       New Booking Order Received
@@ -81,7 +97,7 @@ app.post('/api/send-order', upload.single('screenshot'), async (req, res) => {
       BOOKING DETAILS:
       - Companion: ${companionName}
       - Duration: ${duration || 'Not specified'}
-      - Amount: $${amount}
+      - Amount: $${parsedAmount}
       - Payment Method: ${paymentMethod || 'Not specified'}
       - Preferred Date: ${date || 'Flexible'}
       - Notes: ${notes || 'None'}
@@ -110,7 +126,7 @@ app.post('/api/send-order', upload.single('screenshot'), async (req, res) => {
       body: JSON.stringify({
         from: RESEND_FROM,
         to: [ADMIN_EMAIL],
-        subject: `New Booking - ${companionName} - $${amount} - ${customerName}`,
+        subject: `New Booking - ${companionName} - $${parsedAmount} - ${customerName}`,
         text: emailContent,
         attachments
       })

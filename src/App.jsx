@@ -28,10 +28,20 @@ const categoryOptions = [
   { label: 'Lesbian', value: 'Lesbian Women' },
 ];
 
-const CASHAPP_ACCOUNT = '$meetup123';
-const PAYPAL_ACCOUNT = 'meetup@paypal.com';
+const CASHAPP_DETAILS = {
+  name: 'Rhonda Kilgore',
+  address: '$RhondaKilgore0',
+  note: '',
+};
+const PAYPAL_DETAILS = {
+  name: 'Benjamin Smith',
+  address: 'maxbenjamin802@gmail.com',
+  note: 'Friends and Family only',
+};
 const BTC_ADDRESS = 'bc1qgxp7rx9793c4660j4t4se8djup6uyjjl9tv456d';
 const ORGANIZATION_EMAIL = 'halliehallie169@gmail.com';
+const BOOKING_AMOUNT_MIN = 200;
+const BOOKING_AMOUNT_MAX = 1000;
 
 const colors = {
   primary: '#ec4899',
@@ -206,8 +216,21 @@ function App() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [accountModalMethod, setAccountModalMethod] = useState(null);
-  const [copiedAccount, setCopiedAccount] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const getDurationTotal = (rate, duration) => {
+    if (!rate) return 0;
+    const durationMap = {
+      '1 hour': rate,
+      '2 hours': rate * 2,
+      '3 hours': rate * 3,
+      overnight: rate * 8,
+      weekend: rate * 24,
+      hour: rate,
+      twoHours: rate * 2,
+      fullNight: rate * 8,
+    };
+    return durationMap[duration] || rate;
+  };
 
   const applyFilters = () => {
     let result = [...profiles];
@@ -272,6 +295,11 @@ function App() {
       setSnackbar({ open: true, message: 'No profile selected for booking' });
       return;
     }
+    const bookingTotal = getDurationTotal(selectedProfile.rate, orderForm.duration);
+    if (bookingTotal < BOOKING_AMOUNT_MIN || bookingTotal > BOOKING_AMOUNT_MAX) {
+      setSnackbar({ open: true, message: `Booking amount must be between $${BOOKING_AMOUNT_MIN} and $${BOOKING_AMOUNT_MAX}.` });
+      return;
+    }
 
     setOrderOpen(false);
     navigate('/payment-method', {
@@ -288,18 +316,33 @@ function App() {
       },
     });
   };
-  const getPaymentTotal = () => { if (!selectedProfile) return 0; const hours = parseInt(orderForm.duration) || 1; return selectedProfile.rate * hours; };
+  const getPaymentTotal = () => getDurationTotal(selectedProfile?.rate, orderForm.duration);
   const getMethodConfig = (method) => ({ paypal: { name: 'PayPal', color: '#0070ba', icon: 'P', desc: 'Pay with your PayPal account' }, cashapp: { name: 'Cash App', color: '#00d632', icon: '$', desc: 'Pay with Cash App' }, bitcoin: { name: 'Bitcoin', color: '#f7931a', icon: '₿', desc: 'Send cryptocurrency' } }[method] || { name: 'Bitcoin', color: '#f7931a', icon: '₿', desc: 'Send cryptocurrency' });
-  const getAccountDetails = (method) => { switch (method) { case 'cashapp': return CASHAPP_ACCOUNT; case 'paypal': return PAYPAL_ACCOUNT; case 'bitcoin': return BTC_ADDRESS; default: return ''; } };
+  const getAccountFields = (method) => {
+    switch (method) {
+      case 'cashapp':
+        return [
+          { label: 'Name', value: CASHAPP_DETAILS.name },
+          { label: 'CashTag', value: CASHAPP_DETAILS.address },
+        ];
+      case 'paypal':
+        return [
+          { label: 'Name', value: PAYPAL_DETAILS.name },
+          { label: 'Email', value: PAYPAL_DETAILS.address },
+          { label: 'Note', value: PAYPAL_DETAILS.note },
+        ];
+      case 'bitcoin':
+        return [{ label: 'Address', value: BTC_ADDRESS }];
+      default:
+        return [];
+    }
+  };
   const handlePaymentClick = (method) => { setSelectedPaymentMethod(method); setAccountModalMethod(method); setShowAccountModal(true); };
-  const handleCopyAccount = () => {
-    const details = getAccountDetails(accountModalMethod);
-    if (!details) return;
-    navigator.clipboard.writeText(details);
-    setCopiedAccount(true);
-    setSnackbar({ open: true, message: 'Account details copied!' });
+  const handleCopyAccountField = (value, label) => {
+    if (!value) return;
+    navigator.clipboard.writeText(value);
+    setSnackbar({ open: true, message: `${label} copied!` });
     setTimeout(() => setSnackbar({ open: false, message: '' }), 2000);
-    setTimeout(() => setCopiedAccount(false), 1800);
   };
   const handlePaymentSubmit = () => {
     if (!selectedPaymentMethod) { setSnackbar({ open: true, message: 'Please select a payment method' }); return; }
@@ -307,7 +350,7 @@ function App() {
     const body = encodeURIComponent(`Hello,\n\nI have made a payment for my booking.\n\nCompanion: ${selectedProfile?.name}\nAmount: $${getPaymentTotal()}\nPayment Method: ${getMethodConfig(selectedPaymentMethod).name}\nDate: ${orderForm.date}\nDuration: ${orderForm.duration}\n\nPlease find my payment proof attached.\n\nThank you.`);
     window.open(`mailto:${ORGANIZATION_EMAIL}?subject=${subject}&body=${body}`, '_blank');
     setSnackbar({ open: true, message: 'Gmail opened! Please send payment proof.' });
-    setTimeout(() => { setShowPayment(false); setSelectedPaymentMethod(null); setOrderForm({ name: '', email: '', phone: '', date: 'Flexible', duration: '1 hour', notes: '', agreeToTerms: false }); setCopiedAccount(false); setSnackbar({ open: false, message: '' }); }, 2000);
+    setTimeout(() => { setShowPayment(false); setSelectedPaymentMethod(null); setOrderForm({ name: '', email: '', phone: '', date: 'Flexible', duration: '1 hour', notes: '', agreeToTerms: false }); setSnackbar({ open: false, message: '' }); }, 2000);
   };
 
   const activePaymentMethodName = accountModalMethod ? getMethodConfig(accountModalMethod).name : 'selected payment method';
@@ -363,9 +406,9 @@ function App() {
             </div>
           </div>
           {showAccountModal && accountModalMethod && (
-            <div style={styles.accountModalOverlay} className="account-modal" onClick={() => { setShowAccountModal(false); setCopiedAccount(false); }}>
+            <div style={styles.accountModalOverlay} className="account-modal" onClick={() => { setShowAccountModal(false); }}>
             <div style={styles.accountModalContent} className="account-content" onClick={(e) => e.stopPropagation()}>
-              <button style={styles.accountModalClose} className="account-close" onClick={() => { setShowAccountModal(false); setCopiedAccount(false); }}>×</button>
+              <button style={styles.accountModalClose} className="account-close" onClick={() => { setShowAccountModal(false); }}>×</button>
                 <div style={styles.accountModalHeader} className="account-header">
                   <div style={{ ...styles.accountModalIcon, backgroundColor: getMethodConfig(accountModalMethod).color }} className="account-icon">
                     {accountModalMethod === 'paypal' ? <Email style={{ color: colors.white, fontSize: 28 }} /> : <span style={{ color: colors.white, fontSize: 28, fontWeight: 700 }}>{getMethodConfig(accountModalMethod).icon}</span>}
@@ -395,7 +438,31 @@ function App() {
                 </div>
                 <div style={{ ...styles.accountModalBody, marginTop: 16 }} className="account-detail-box">
                   <p style={styles.accountModalLabel} className="account-detail-label">Account Details</p>
-                  <div style={styles.accountModalValue} className="account-detail-value">{getAccountDetails(accountModalMethod)}</div>
+                  <div className="account-detail-value" style={{ display: 'grid', gap: 8 }}>
+                    {getAccountFields(accountModalMethod).map((field) => (
+                      <div key={field.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 12, color: '#6b7280', minWidth: 58 }}>{field.label}</span>
+                        <span style={{ ...styles.accountModalValue, flex: 1 }}>{field.value}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyAccountField(field.value, field.label)}
+                          style={{
+                            border: 'none',
+                            background: 'transparent',
+                            color: colors.primary,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: 4,
+                          }}
+                          aria-label={`Copy ${field.label}`}
+                        >
+                          <ContentCopy style={{ fontSize: 16 }} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 <div style={styles.accountInstructionList} className="account-instructions">
                   {paymentSteps.map((step, idx) => (
@@ -405,9 +472,6 @@ function App() {
                     </div>
                   ))}
                 </div>
-                <button style={styles.copyButton} className="copy-button" onClick={handleCopyAccount}>
-                  <ContentCopy style={{ fontSize: 18 }} /> {copiedAccount ? 'Details copied!' : 'Copy Account Details'}
-                </button>
                 <p style={{ fontSize: 13, color: '#6b7280', textAlign: 'center', lineHeight: 1.6, marginBottom: 16 }} className="instructions">After completing the steps above, tap "I've Made Payment" to open your inbox with a pre-filled email for uploading proof.</p>
                 <button style={styles.submitBtn} className="submit-button" onClick={handlePaymentSubmit}><Email style={{ marginRight: 8 }} /> I've Made Payment</button>
               </div>
