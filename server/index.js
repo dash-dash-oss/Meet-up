@@ -13,7 +13,7 @@ const ALLOWED_ORIGINS = [FRONTEND_ORIGIN, ...ADDITIONAL_ALLOWED_ORIGINS];
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_FROM = process.env.RESEND_FROM;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-const BOOKING_AMOUNT_MIN = 200;
+const BOOKING_AMOUNT_MIN = 40;
 const BOOKING_AMOUNT_MAX = 1000;
 
 const corsOptions = {

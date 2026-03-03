@@ -19,7 +19,7 @@ import mockProfiles from './data/mockProfiles';
 const ethnicities = ['All', 'Latin', 'Asian', 'Mixed', 'African American'];
 const hairColors = ['All', 'Blonde', 'Brunette', 'Black', 'Red', 'Auburn'];
 const ages = ['All', '18-22', '23-26', '27-30', '31+'];
-const rates = ['All', 'Under $300', '$300-$500', '$500-$700', '$700+'];
+const rates = ['All', '$40-$60', '$61-$80', '$81-$100'];
 const categoryOptions = [
   { label: 'All', value: 'All' },
   { label: 'Women', value: 'Straight Women' },
@@ -40,7 +40,7 @@ const PAYPAL_DETAILS = {
 };
 const BTC_ADDRESS = 'bc1qgxp7rx9793c4660j4t4se8djup6uyjjl9tv456d';
 const ORGANIZATION_EMAIL = 'halliehallie169@gmail.com';
-const BOOKING_AMOUNT_MIN = 200;
+const BOOKING_AMOUNT_MIN = 40;
 const BOOKING_AMOUNT_MAX = 1000;
 const INITIAL_VISIBLE_PROFILES = 18;
 const LOAD_MORE_STEP = 12;
@@ -212,7 +212,7 @@ function App() {
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [orderOpen, setOrderOpen] = useState(false);
-  const [orderForm, setOrderForm] = useState({ name: '', email: '', phone: '', date: 'Flexible', duration: '1 hour', notes: '', agreeToTerms: false });
+  const [orderForm, setOrderForm] = useState({ name: '', email: '', phone: '', date: 'Flexible', duration: '1 day', notes: '', agreeToTerms: false });
   const [snackbar, setSnackbar] = useState({ open: false, message: '' });
   const [showPayment, setShowPayment] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
@@ -222,6 +222,10 @@ function App() {
   const getDurationTotal = (rate, duration) => {
     if (!rate) return 0;
     const durationMap = {
+      '1 day': rate,
+      '2 days': rate * 2,
+      '3 days': rate * 3,
+      '1 week': rate * 7,
       '1 hour': rate,
       '2 hours': rate * 2,
       '3 hours': rate * 3,
@@ -250,7 +254,7 @@ function App() {
       result = result.filter(p => p.age >= minAge && p.age <= maxAge);
     }
     if (filters.rate !== 'All') {
-      const rateRanges = { 'Under $300': [0, 300], '$300-$500': [300, 500], '$500-$700': [500, 700], '$700+': [700, 10000] };
+      const rateRanges = { '$40-$60': [40, 61], '$61-$80': [61, 81], '$81-$100': [81, 101] };
       const [minRate, maxRate] = rateRanges[filters.rate];
       result = result.filter(p => p.rate >= minRate && p.rate < maxRate);
     }
@@ -362,7 +366,7 @@ function App() {
     const body = encodeURIComponent(`Hello,\n\nI have made a payment for my booking.\n\nCompanion: ${selectedProfile?.name}\nAmount: $${getPaymentTotal()}\nPayment Method: ${getMethodConfig(selectedPaymentMethod).name}\nDate: ${orderForm.date}\nDuration: ${orderForm.duration}\n\nPlease find my payment proof attached.\n\nThank you.`);
     window.open(`mailto:${ORGANIZATION_EMAIL}?subject=${subject}&body=${body}`, '_blank');
     setSnackbar({ open: true, message: 'Gmail opened! Please send payment proof.' });
-    setTimeout(() => { setShowPayment(false); setSelectedPaymentMethod(null); setOrderForm({ name: '', email: '', phone: '', date: 'Flexible', duration: '1 hour', notes: '', agreeToTerms: false }); setSnackbar({ open: false, message: '' }); }, 2000);
+    setTimeout(() => { setShowPayment(false); setSelectedPaymentMethod(null); setOrderForm({ name: '', email: '', phone: '', date: 'Flexible', duration: '1 day', notes: '', agreeToTerms: false }); setSnackbar({ open: false, message: '' }); }, 2000);
   };
 
   const activePaymentMethodName = accountModalMethod ? getMethodConfig(accountModalMethod).name : 'selected payment method';
@@ -396,7 +400,7 @@ function App() {
               </div>
             )}
             <div className="payment-methods">
-              {['paypal', 'cashapp', 'bitcoin'].map((method) => {
+              {['paypal', 'bitcoin'].map((method) => {
                 const config = getMethodConfig(method);
                 return (
                   <div 
@@ -831,7 +835,7 @@ function App() {
             <div style={{ padding: 32 }}>
               <div style={styles.bookingHeader} className="booking-header">
                 <p style={{ fontSize: 12, color: '#6b7280', margin: '0 0 6px' }}>Booking Details</p>
-                <p style={styles.bookingPrice} className="booking-price">${selectedProfile.rate} / hour</p>
+                <p style={styles.bookingPrice} className="booking-price">${selectedProfile.rate} / day</p>
                 <p style={styles.bookingSubtitle} className="booking-subtitle">{selectedProfile.name}, {selectedProfile.age} • {selectedProfile.location}</p>
               </div>
               <form id="booking-form" style={styles.bookingForm} onSubmit={(e) => { e.preventDefault(); handleSubmitOrder(); }}>
@@ -850,7 +854,7 @@ function App() {
                   </div>
                   <div style={styles.bookingSummaryRow}>
                     <span style={styles.bookingSummaryLabel}>Rate</span>
-                    <span style={styles.bookingSummaryValue}>${selectedProfile.rate} / hour</span>
+                    <span style={styles.bookingSummaryValue}>${selectedProfile.rate} / day</span>
                   </div>
                 </div>
                 {[
@@ -874,10 +878,10 @@ function App() {
                   style={{ ...styles.searchInput, marginBottom: 16, borderRadius: 12, border: '2px solid #e5e7eb', padding: '14px 16px', background: colors.white }}
                   className="form-select"
                 >
-                  <option value="1 hour">1 Hour - ${selectedProfile.rate}</option>
-                  <option value="2 hours">2 Hours - ${selectedProfile.rate * 2}</option>
-                  <option value="3 hours">3 Hours - ${selectedProfile.rate * 3}</option>
-                  <option value="overnight">Overnight - ${selectedProfile.rate * 8}</option>
+                  <option value="1 day">1 Day - ${selectedProfile.rate}</option>
+                  <option value="2 days">2 Days - ${selectedProfile.rate * 2}</option>
+                  <option value="3 days">3 Days - ${selectedProfile.rate * 3}</option>
+                  <option value="1 week">1 Week - ${selectedProfile.rate * 7}</option>
                 </select>
                 <textarea
                   placeholder="Additional Notes"

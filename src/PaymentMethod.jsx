@@ -2,7 +2,7 @@ import { Box, Typography, Card, Button, Alert, Grid, IconButton } from '@mui/mat
 import { AccountBalanceWallet, CurrencyBitcoin, ArrowBack, Payments } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-const BOOKING_AMOUNT_MIN = 200;
+const BOOKING_AMOUNT_MIN = 40;
 const BOOKING_AMOUNT_MAX = 1000;
 
 const PaymentMethod = () => {
@@ -27,6 +27,7 @@ const PaymentMethod = () => {
       icon: AccountBalanceWallet,
       iconColor: '#00d632',
       iconBg: 'rgba(0, 214, 50, 0.12)',
+      available: false,
     },
     {
       key: 'paypal',
@@ -35,6 +36,7 @@ const PaymentMethod = () => {
       icon: Payments,
       iconColor: '#003087',
       iconBg: 'rgba(0, 48, 135, 0.12)',
+      available: true,
     },
     {
       key: 'bitcoin',
@@ -43,6 +45,7 @@ const PaymentMethod = () => {
       icon: CurrencyBitcoin,
       iconColor: '#f7931a',
       iconBg: 'rgba(247, 147, 26, 0.12)',
+      available: true,
     },
   ];
   
@@ -53,6 +56,10 @@ const PaymentMethod = () => {
     }
     if (profile.rate) {
       const hourMap = {
+        '1 day': profile.rate,
+        '2 days': profile.rate * 2,
+        '3 days': profile.rate * 3,
+        '1 week': profile.rate * 7,
         '1 hour': profile.rate,
         '2 hours': profile.rate * 2,
         '3 hours': profile.rate * 3,
@@ -60,7 +67,7 @@ const PaymentMethod = () => {
         'weekend': profile.rate * 24,
         'hour': profile.rate,
         'twoHours': profile.rate * 2,
-        'fullNight': profile.rate * 8
+        'fullNight': profile.rate * 8,
       };
       return hourMap[hours] || profile.rate;
     }
@@ -146,13 +153,14 @@ const PaymentMethod = () => {
                   mb: 2,
                   display: 'flex',
                   alignItems: 'center',
-                  cursor: 'pointer',
+                  cursor: option.available ? 'pointer' : 'not-allowed',
+                  opacity: option.available ? 1 : 0.6,
                   borderRadius: 3,
                   border: '1px solid #f3f4f6',
                   boxShadow: '0 4px 16px rgba(17, 24, 39, 0.06)',
                   '&:hover': { boxShadow: '0 10px 24px rgba(236, 72, 153, 0.16)', borderColor: '#fbcfe8' },
                 }}
-                onClick={() => navigate(`/pay/${option.key}`, { state })}
+                onClick={() => option.available && navigate(`/pay/${option.key}`, { state })}
               >
                 <Box
                   sx={{
@@ -172,7 +180,9 @@ const PaymentMethod = () => {
                   <Typography fontWeight="bold">{option.title}</Typography>
                   <Typography variant="body2" color="text.secondary">{option.desc}</Typography>
                 </Box>
-                <Alert severity="success" sx={{ ml: 1 }}>Available</Alert>
+                <Alert severity={option.available ? 'success' : 'warning'} sx={{ ml: 1 }}>
+                  {option.available ? 'Available' : 'Unavailable'}
+                </Alert>
               </Card>
             );
           })}

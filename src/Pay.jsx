@@ -35,7 +35,7 @@ const PAYPAL_DETAILS = {
   note: 'Friends and Family only',
 };
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
-const BOOKING_AMOUNT_MIN = 200;
+const BOOKING_AMOUNT_MIN = 40;
 const BOOKING_AMOUNT_MAX = 1000;
 
 const methodConfig = {
@@ -99,24 +99,41 @@ const Pay = () => {
   const getTotal = () => {
     if (!profile) return 0;
     const hourMap = {
-      '1 hour': profile.rate || 500,
-      '2 hours': (profile.rate || 500) * 2,
-      '3 hours': (profile.rate || 500) * 3,
-      overnight: (profile.rate || 500) * 8,
-      weekend: (profile.rate || 500) * 24,
-      hour: profile.rate || 500,
-      twoHours: (profile.rate || 500) * 2,
-      fullNight: (profile.rate || 500) * 8,
+      '1 day': profile.rate || 40,
+      '2 days': (profile.rate || 40) * 2,
+      '3 days': (profile.rate || 40) * 3,
+      '1 week': (profile.rate || 40) * 7,
+      '1 hour': profile.rate || 40,
+      '2 hours': (profile.rate || 40) * 2,
+      '3 hours': (profile.rate || 40) * 3,
+      overnight: (profile.rate || 40) * 8,
+      weekend: (profile.rate || 40) * 24,
+      hour: profile.rate || 40,
+      twoHours: (profile.rate || 40) * 2,
+      fullNight: (profile.rate || 40) * 8,
     };
-    return hourMap[hours] || profile.rate || 500;
+    return hourMap[hours] || profile.rate || 40;
   };
 
   const total = getTotal();
-  const requiresProof = ['bitcoin', 'cashapp', 'paypal'].includes(method);
+  const requiresProof = ['bitcoin', 'paypal'].includes(method);
   const requiresCard = method === 'card';
 
   const config = methodConfig[method] || methodConfig.bitcoin;
   const MethodIcon = config.icon;
+
+  if (method === 'cashapp') {
+    return (
+      <Box sx={{ p: 3, maxWidth: 700, mx: 'auto' }}>
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          CashApp is currently unavailable. Please use PayPal or Bitcoin.
+        </Alert>
+        <Button variant="outlined" startIcon={<ArrowBack />} onClick={() => navigate(-1)}>
+          Back
+        </Button>
+      </Box>
+    );
+  }
 
   const copyFieldValue = (value, key) => {
     navigator.clipboard.writeText(value);
