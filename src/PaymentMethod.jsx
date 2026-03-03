@@ -1,5 +1,5 @@
 import { Box, Typography, Card, Button, Alert, Grid, IconButton } from '@mui/material';
-import { AccountBalanceWallet, CurrencyBitcoin, ArrowBack, Payments } from '@mui/icons-material';
+import { ArrowBack } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const BOOKING_AMOUNT_MIN = 40;
@@ -24,27 +24,24 @@ const PaymentMethod = () => {
       key: 'cashapp',
       title: 'CashApp',
       desc: 'Pay with CashApp balance',
-      icon: AccountBalanceWallet,
-      iconColor: '#00d632',
-      iconBg: 'rgba(0, 214, 50, 0.12)',
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/c/c3/Cash_App_logo.svg',
+      color: '#00d632',
       available: false,
     },
     {
       key: 'paypal',
       title: 'PayPal',
       desc: 'Pay with PayPal',
-      icon: Payments,
-      iconColor: '#003087',
-      iconBg: 'rgba(0, 48, 135, 0.12)',
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg',
+      color: '#003087',
       available: true,
     },
     {
       key: 'bitcoin',
       title: 'Bitcoin',
       desc: 'Cryptocurrency payment',
-      icon: CurrencyBitcoin,
-      iconColor: '#f7931a',
-      iconBg: 'rgba(247, 147, 26, 0.12)',
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/4/46/Bitcoin.svg',
+      color: '#f7931a',
       available: true,
     },
   ];
@@ -144,7 +141,6 @@ const PaymentMethod = () => {
       <Grid container spacing={3} sx={{ justifyContent: 'center' }}>
         <Grid item xs={12}>
           {paymentOptions.map((option) => {
-            const Icon = option.icon;
             return (
               <Card
                 key={option.key}
@@ -152,53 +148,63 @@ const PaymentMethod = () => {
                   p: { xs: 1.5, sm: 2 },
                   mb: 2,
                   display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  alignItems: { xs: 'flex-start', sm: 'center' },
-                  gap: { xs: 1, sm: 0 },
-                  cursor: option.available ? 'pointer' : 'not-allowed',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 1.25,
                   opacity: option.available ? 1 : 0.6,
                   borderRadius: 3,
                   border: '1px solid #f3f4f6',
                   boxShadow: '0 4px 16px rgba(17, 24, 39, 0.06)',
+                  textAlign: 'center',
                   '&:hover': { boxShadow: '0 10px 24px rgba(236, 72, 153, 0.16)', borderColor: '#fbcfe8' },
                 }}
-                onClick={() => option.available && navigate(`/pay/${option.key}`, { state })}
               >
                 <Box
                   sx={{
-                    mr: { xs: 0, sm: 2 },
-                    width: { xs: 38, sm: 42 },
-                    height: { xs: 38, sm: 42 },
+                    width: { xs: 48, sm: 56 },
+                    height: { xs: 48, sm: 56 },
                     borderRadius: 2,
-                    display: 'inline-flex',
+                    display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    bgcolor: option.iconBg,
+                    bgcolor: '#fff',
                   }}
                 >
-                  <Icon sx={{ color: option.iconColor }} />
+                  <Box
+                    component="img"
+                    src={option.logo}
+                    alt={`${option.title} logo`}
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
+                    }}
+                  />
                 </Box>
-                <Box sx={{ flexGrow: 1, width: { xs: '100%', sm: 'auto' } }}>
+
+                <Box sx={{ width: '100%' }}>
                   <Typography fontWeight="bold">{option.title}</Typography>
                   <Typography variant="body2" color="text.secondary">{option.desc}</Typography>
                 </Box>
-                <Box
+
+                <Button
+                  fullWidth
+                  variant="contained"
+                  disabled={!option.available}
+                  onClick={() => option.available && navigate(`/pay/${option.key}`, { state })}
                   sx={{
-                    ml: { xs: 0, sm: 1 },
-                    mt: { xs: 0.5, sm: 0 },
-                    px: 1.25,
-                    py: 0.5,
-                    borderRadius: 999,
-                    fontSize: '0.75rem',
+                    mt: 0.5,
+                    borderRadius: 2,
+                    textTransform: 'none',
                     fontWeight: 700,
-                    color: option.available ? '#166534' : '#92400e',
-                    bgcolor: option.available ? '#dcfce7' : '#fef3c7',
-                    border: option.available ? '1px solid #bbf7d0' : '1px solid #fde68a',
-                    alignSelf: { xs: 'flex-start', sm: 'center' },
+                    py: 1.1,
+                    bgcolor: option.color,
+                    '&:hover': { bgcolor: option.color },
+                    '&.Mui-disabled': { bgcolor: '#d1d5db', color: '#6b7280' },
                   }}
                 >
-                  {option.available ? 'Available' : 'Unavailable'}
-                </Box>
+                  {option.available ? 'Pay Now' : 'Unavailable'}
+                </Button>
               </Card>
             );
           })}
