@@ -5,12 +5,22 @@ import multer from 'multer';
 const app = express();
 const PORT = process.env.PORT || 3001;
 const normalizeOrigin = (value) => value?.trim().replace(/\/$/, '');
-const FRONTEND_ORIGIN = normalizeOrigin(process.env.FRONTEND_ORIGIN || 'https://meet-up-com.vercel.app');
-const ADDITIONAL_ALLOWED_ORIGINS = (process.env.ADDITIONAL_ALLOWED_ORIGINS || 'https://meetup-two-phi.vercel.app,http://localhost:5173,http://localhost:5174')
+const FRONTEND_ORIGIN = normalizeOrigin(process.env.FRONTEND_ORIGIN || '');
+const ADDITIONAL_ALLOWED_ORIGINS = (process.env.ADDITIONAL_ALLOWED_ORIGINS || '')
   .split(',')
   .map((origin) => normalizeOrigin(origin))
   .filter(Boolean);
-const ALLOWED_ORIGINS = new Set([FRONTEND_ORIGIN, ...ADDITIONAL_ALLOWED_ORIGINS]);
+const DEFAULT_ALLOWED_ORIGINS = [
+  'https://meet-up-com.vercel.app',
+  'https://meetup-two-phi.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:5174',
+].map((origin) => normalizeOrigin(origin));
+const ALLOWED_ORIGINS = new Set([
+  ...DEFAULT_ALLOWED_ORIGINS,
+  FRONTEND_ORIGIN,
+  ...ADDITIONAL_ALLOWED_ORIGINS,
+].filter(Boolean));
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_FROM = process.env.RESEND_FROM;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
@@ -160,6 +170,13 @@ app.post('/api/send-order', upload.single('screenshot'), async (req, res) => {
 });
 
 app.use((err, req, res, next) => {
+  if (err?.message === 'Not allowed by CORS') {
+    return res.status(403).json({
+      success: false,
+      message: 'Origin is not allowed by CORS policy.'
+    });
+  }
+
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({
