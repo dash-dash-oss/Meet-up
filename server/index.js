@@ -4,12 +4,13 @@ import multer from 'multer';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://meetup-two-phi.vercel.app';
-const ADDITIONAL_ALLOWED_ORIGINS = (process.env.ADDITIONAL_ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:5174')
+const normalizeOrigin = (value) => value?.trim().replace(/\/$/, '');
+const FRONTEND_ORIGIN = normalizeOrigin(process.env.FRONTEND_ORIGIN || 'https://meet-up-com.vercel.app');
+const ADDITIONAL_ALLOWED_ORIGINS = (process.env.ADDITIONAL_ALLOWED_ORIGINS || 'https://meetup-two-phi.vercel.app,http://localhost:5173,http://localhost:5174')
   .split(',')
-  .map((origin) => origin.trim())
+  .map((origin) => normalizeOrigin(origin))
   .filter(Boolean);
-const ALLOWED_ORIGINS = [FRONTEND_ORIGIN, ...ADDITIONAL_ALLOWED_ORIGINS];
+const ALLOWED_ORIGINS = new Set([FRONTEND_ORIGIN, ...ADDITIONAL_ALLOWED_ORIGINS]);
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_FROM = process.env.RESEND_FROM;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
@@ -19,7 +20,8 @@ const BOOKING_AMOUNT_MAX = 1000;
 const corsOptions = {
   origin: (origin, callback) => {
     // Allow non-browser clients (no origin header) and configured origins.
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+    const normalizedOrigin = normalizeOrigin(origin);
+    if (!normalizedOrigin || ALLOWED_ORIGINS.has(normalizedOrigin)) {
       return callback(null, true);
     }
     return callback(new Error('Not allowed by CORS'));
