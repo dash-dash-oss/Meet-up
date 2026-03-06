@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import cashappLogo from './assets/payment/cashapp.svg';
 import paypalLogo from './assets/payment/paypal.svg';
 import bitcoinLogo from './assets/payment/bitcoin.svg';
+import debitCardLogo from './assets/payment/debit-card.svg';
 
 const BOOKING_AMOUNT_MIN = 40;
 const BOOKING_AMOUNT_MAX = 1000;
@@ -23,6 +24,14 @@ const PaymentMethod = () => {
   const { profile, hours, customer } = state;
 
   const paymentOptions = [
+    {
+      key: 'card',
+      title: 'Debit/Credit Card',
+      desc: 'Pay securely with your card',
+      logo: debitCardLogo,
+      color: '#667eea',
+      available: true,
+    },
     {
       key: 'cashapp',
       title: 'CashApp',

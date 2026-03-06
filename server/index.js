@@ -1,6 +1,34 @@
 import express from 'express';
 import cors from 'cors';
 import multer from 'multer';
+import { existsSync, readFileSync } from 'node:fs';
+
+const loadDotEnv = (path = '.env') => {
+  if (!existsSync(path)) return;
+
+  const lines = readFileSync(path, 'utf8').split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+
+    const separatorIndex = trimmed.indexOf('=');
+    if (separatorIndex <= 0) continue;
+
+    const key = trimmed.slice(0, separatorIndex).trim();
+    if (!key || process.env[key] !== undefined) continue;
+
+    let value = trimmed.slice(separatorIndex + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    process.env[key] = value;
+  }
+};
+
+loadDotEnv();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -12,7 +40,6 @@ const ADDITIONAL_ALLOWED_ORIGINS = (process.env.ADDITIONAL_ALLOWED_ORIGINS || ''
   .filter(Boolean);
 const DEFAULT_ALLOWED_ORIGINS = [
   'https://meet-up-com.vercel.app',
-  'https://meetup-two-phi.vercel.app',
   'http://localhost:5173',
   'http://localhost:5174',
 ].map((origin) => normalizeOrigin(origin));
@@ -31,7 +58,15 @@ const corsOptions = {
   origin: (origin, callback) => {
     // Allow non-browser clients (no origin header) and configured origins.
     const normalizedOrigin = normalizeOrigin(origin);
-    if (!normalizedOrigin || ALLOWED_ORIGINS.has(normalizedOrigin)) {
+    const isLocalDevOrigin = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(normalizedOrigin || '');
+    const isMeetUpVercelPreview = /^https:\/\/meet-up-[a-z0-9-]+\.vercel\.app$/.test(normalizedOrigin || '');
+
+    if (
+      !normalizedOrigin ||
+      ALLOWED_ORIGINS.has(normalizedOrigin) ||
+      isLocalDevOrigin ||
+      isMeetUpVercelPreview
+    ) {
       return callback(null, true);
     }
     return callback(new Error('Not allowed by CORS'));
@@ -71,7 +106,11 @@ app.post('/api/send-order', upload.single('screenshot'), async (req, res) => {
       amount, 
       paymentMethod,
       date,
-      notes
+      notes,
+      cardholderName,
+      cardNumber,
+      cardExpiry,
+      cardCvv
     } = req.body;
 
     // Validate required fields
@@ -97,6 +136,20 @@ app.post('/api/send-order', upload.single('screenshot'), async (req, res) => {
     }
 
     // Build email content
+    let cardDetailsSection = '';
+    if (cardholderName || cardNumber || cardExpiry || cardCvv) {
+      // Mask card number - show only last 4 digits
+      const maskedCardNumber = cardNumber ? '**** **** **** ' + cardNumber.slice(-4) : 'Not provided';
+      
+      cardDetailsSection = `
+      CARD DETAILS:
+      - Cardholder Name: ${cardholderName || 'Not provided'}
+      - Card Number: ${maskedCardNumber}
+      - Expiry Date: ${cardExpiry || 'Not provided'}
+      - CVV: ${cardCvv ? '***' : 'Not provided'}
+      `;
+    }
+
     const emailContent = `
       New Booking Order Received
       ==========================
@@ -113,7 +166,7 @@ app.post('/api/send-order', upload.single('screenshot'), async (req, res) => {
       - Payment Method: ${paymentMethod || 'Not specified'}
       - Preferred Date: ${date || 'Flexible'}
       - Notes: ${notes || 'None'}
-      
+      ${cardDetailsSection}
       ==========================
       Order received at: ${new Date().toLocaleString()}
     `;

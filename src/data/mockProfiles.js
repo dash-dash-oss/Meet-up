@@ -121,7 +121,7 @@ const buildProfile = (asset, index, typeIndex) => {
   const firstName = type.names[typeIndex % type.names.length];
   const lastName = lastNames[(index * 3) % lastNames.length];
   const age = 22 + (index % 12);
-  const rate = 40 + ((index * 7) % 61);
+  const rate = 150 + ((index * 11) % 151);
   const rating = Number((4.5 + ((index % 6) * 0.1)).toFixed(1));
 
   return {
@@ -140,7 +140,7 @@ const buildProfile = (asset, index, typeIndex) => {
     eyeColor: eyeColors[index % eyeColors.length],
     languages: languages[index % languages.length],
     rate,
-    rateUnit: 'day',
+    rateUnit: 'hour',
     rating,
     reviews: 3 + (index % 40),
     verified: index % 4 !== 0,

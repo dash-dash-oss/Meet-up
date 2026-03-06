@@ -19,7 +19,7 @@ import mockProfiles from './data/mockProfiles';
 const ethnicities = ['All', 'Latin', 'Asian', 'Mixed', 'African American'];
 const hairColors = ['All', 'Blonde', 'Brunette', 'Black', 'Red', 'Auburn'];
 const ages = ['All', '18-22', '23-26', '27-30', '31+'];
-const rates = ['All', '$40-$60', '$61-$80', '$81-$100'];
+const rates = ['All', '$150-$199', '$200-$249', '$250-$300'];
 const categoryOptions = [
   { label: 'All', value: 'All' },
   { label: 'Women', value: 'Straight Women' },
@@ -260,7 +260,7 @@ function App() {
       result = result.filter(p => p.age >= minAge && p.age <= maxAge);
     }
     if (filters.rate !== 'All') {
-      const rateRanges = { '$40-$60': [40, 61], '$61-$80': [61, 81], '$81-$100': [81, 101] };
+      const rateRanges = { '$150-$199': [150, 200], '$200-$249': [200, 250], '$250-$300': [250, 301] };
       const [minRate, maxRate] = rateRanges[filters.rate];
       result = result.filter(p => p.rate >= minRate && p.rate < maxRate);
     }
@@ -858,7 +858,7 @@ function App() {
             <div style={{ padding: 32 }}>
               <div style={styles.bookingHeader} className="booking-header">
                 <p style={{ fontSize: 12, color: '#6b7280', margin: '0 0 6px' }}>Booking Details</p>
-                <p style={styles.bookingPrice} className="booking-price">${selectedProfile.rate} / day</p>
+                <p style={styles.bookingPrice} className="booking-price">${selectedProfile.rate} / {selectedProfile.rateUnit}</p>
                 <p style={styles.bookingSubtitle} className="booking-subtitle">{selectedProfile.name}, {selectedProfile.age} • {selectedProfile.location}</p>
               </div>
               <form id="booking-form" style={styles.bookingForm} onSubmit={(e) => { e.preventDefault(); handleSubmitOrder(); }}>
@@ -877,7 +877,7 @@ function App() {
                   </div>
                   <div style={styles.bookingSummaryRow}>
                     <span style={styles.bookingSummaryLabel}>Rate</span>
-                    <span style={styles.bookingSummaryValue}>${selectedProfile.rate} / day</span>
+                    <span style={styles.bookingSummaryValue}>${selectedProfile.rate} / {selectedProfile.rateUnit}</span>
                   </div>
                 </div>
                 {[
