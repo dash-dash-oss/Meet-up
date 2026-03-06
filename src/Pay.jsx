@@ -34,7 +34,10 @@ const PAYPAL_DETAILS = {
   address: 'maxbenjamin802@gmail.com',
   note: 'Friends and Family only',
 };
-const API_BASE_URL = ''; // Use proxy - calls /api which routes to localhost:3001
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.PROD ? 'https://meetup-yqz3.onrender.com' : '')
+).replace(/\/$/, '');
 const BOOKING_AMOUNT_MIN = 40;
 const BOOKING_AMOUNT_MAX = 1000;
 
@@ -286,7 +289,9 @@ const Pay = () => {
       } catch (err) {
         console.error('Error submitting order:', err);
         setStatusOpen(false);
-        setError('Network error. Please check your connection and try again.');
+        setError(
+          `Network error reaching ${API_BASE_URL || 'local API route'}. Check backend availability and try again.`
+        );
       }
       return;
     }
@@ -382,7 +387,9 @@ const Pay = () => {
       } catch (err) {
         console.error('Error submitting order:', err);
         setStatusOpen(false);
-        setError('Network error. Please check your connection and try again.');
+        setError(
+          `Network error reaching ${API_BASE_URL || 'local API route'}. Check backend availability and try again.`
+        );
       }
       return;
     }

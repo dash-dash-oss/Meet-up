@@ -213,7 +213,25 @@ app.post('/api/send-order', upload.single('screenshot'), async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error sending email:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Error sending email:', errorMessage);
+
+    const isResendAuthError = /resend api error \(401|resend api error \(403|invalid api key|unauthorized/i.test(errorMessage);
+    const isResendSenderError = /from|sender|domain|verify/i.test(errorMessage);
+
+    if (isResendAuthError) {
+      return res.status(502).json({
+        success: false,
+        message: 'Resend authentication failed. Check RESEND_API_KEY and restart the server.'
+      });
+    }
+
+    if (isResendSenderError) {
+      return res.status(502).json({
+        success: false,
+        message: 'Sender email is not verified on Resend. Verify RESEND_FROM and your domain settings.'
+      });
+    }
 
     res.status(500).json({ 
       success: false, 
@@ -243,7 +261,18 @@ app.use((err, req, res, next) => {
     });
   }
 
-  console.error('Unhandled server error:', err);
+  const errorMessage = err instanceof Error ? err.message : String(err || '');
+  const isMalformedMultipart =
+    /unexpected end of form|multipart: boundary not found|unexpected field/i.test(errorMessage);
+
+  if (isMalformedMultipart) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid upload payload. Please re-upload the screenshot and try again.'
+    });
+  }
+
+  console.error('Unhandled server error:', errorMessage);
   return res.status(500).json({
     success: false,
     message: 'Server error while processing order.'
