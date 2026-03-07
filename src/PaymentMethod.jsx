@@ -5,6 +5,7 @@ import cashappLogo from './assets/payment/cashapp.svg';
 import paypalLogo from './assets/payment/paypal.svg';
 import bitcoinLogo from './assets/payment/bitcoin.svg';
 import debitCardLogo from './assets/payment/debit-card.svg';
+import stripeLogo from './assets/payment/stripe.svg';
 
 const BOOKING_AMOUNT_MIN = 40;
 const BOOKING_AMOUNT_MAX = 1000;
@@ -119,7 +120,7 @@ const PaymentMethod = () => {
       <Typography
         fontWeight="bold"
         textAlign="center"
-        mb={2}
+        mb={1}
         sx={{
           fontSize: { xs: '1.6rem', sm: '2.125rem' },
           background: 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)',
@@ -129,6 +130,39 @@ const PaymentMethod = () => {
       >
         Select Payment Method
       </Typography>
+
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 1,
+          mb: 2.5,
+        }}
+      >
+        <Typography
+          variant="caption"
+          sx={{
+            color: '#6b7280',
+            fontWeight: 700,
+            letterSpacing: 0.4,
+            textTransform: 'uppercase',
+          }}
+        >
+          Powered by
+        </Typography>
+        <Box
+          component="img"
+          src={stripeLogo}
+          alt="Stripe logo"
+          sx={{
+            height: 20,
+            width: 'auto',
+            objectFit: 'contain',
+            filter: 'drop-shadow(0 2px 6px rgba(99, 102, 241, 0.25))',
+          }}
+        />
+      </Box>
 
       {/* Price at Top */}
       <Box 

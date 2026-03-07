@@ -42,6 +42,8 @@ const BTC_ADDRESS = 'bc1qgxp7rx9793c4660j4t4se8djup6uyjjl9tv456d';
 const ORGANIZATION_EMAIL = 'halliehallie169@gmail.com';
 const BOOKING_AMOUNT_MIN = 40;
 const BOOKING_AMOUNT_MAX = 1000;
+const US_COUNTRY_CODE = '+1';
+const US_LOCAL_PHONE_DIGITS = 10;
 const INITIAL_VISIBLE_PROFILES = 18;
 const LOAD_MORE_STEP = 12;
 const FALLBACK_IMAGE = 'https://via.placeholder.com/400x500?text=No+Image';
@@ -218,13 +220,24 @@ function App() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [fullImageOpen, setFullImageOpen] = useState(false);
   const [orderOpen, setOrderOpen] = useState(false);
-  const [orderForm, setOrderForm] = useState({ name: '', email: '', phone: '', date: 'Flexible', duration: '1 day', notes: '', agreeToTerms: false });
+  const [orderForm, setOrderForm] = useState({ name: '', email: '', phone: US_COUNTRY_CODE, date: 'Flexible', duration: '1 day', notes: '', agreeToTerms: false });
   const [snackbar, setSnackbar] = useState({ open: false, message: '' });
   const [showPayment, setShowPayment] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [accountModalMethod, setAccountModalMethod] = useState(null);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const normalizePhoneInput = useCallback((value) => {
+    const digitsOnly = value.replace(/\D/g, '');
+    const localDigits = digitsOnly.startsWith('1')
+      ? digitsOnly.slice(1, US_LOCAL_PHONE_DIGITS + 1)
+      : digitsOnly.slice(0, US_LOCAL_PHONE_DIGITS);
+    return `${US_COUNTRY_CODE}${localDigits}`;
+  }, []);
+  const isValidPhoneNumber = useCallback((value) => {
+    return /^\+1\d{10}$/.test(value);
+  }, []);
+  const isValidEmail = useCallback((value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()), []);
   const getDurationTotal = (rate, duration) => {
     if (!rate) return 0;
     const durationMap = {
@@ -309,8 +322,16 @@ function App() {
   const handleCloseProfileModal = () => { setDetailsOpen(false); setFullImageOpen(false); };
   const handleOrder = (profile) => { setSelectedProfile(profile); setOrderOpen(true); };
   const handleSubmitOrder = () => {
-    if (!orderForm.name.trim() || !orderForm.email.trim() || !orderForm.agreeToTerms) {
-      setSnackbar({ open: true, message: 'Please fill in all required fields' });
+    if (!orderForm.name.trim() || !orderForm.email.trim() || !orderForm.phone.trim() || !orderForm.agreeToTerms) {
+      setSnackbar({ open: true, message: 'Please fill in all required fields, including phone number.' });
+      return;
+    }
+    if (!isValidEmail(orderForm.email)) {
+      setSnackbar({ open: true, message: 'Please enter a valid email address.' });
+      return;
+    }
+    if (!isValidPhoneNumber(orderForm.phone)) {
+      setSnackbar({ open: true, message: 'Please enter a valid US phone number.' });
       return;
     }
 
@@ -331,8 +352,8 @@ function App() {
         hours: orderForm.duration,
         customer: {
           name: orderForm.name,
-          email: orderForm.email,
-          phone: orderForm.phone,
+          email: orderForm.email.trim(),
+          phone: normalizePhoneInput(orderForm.phone),
           date: orderForm.date,
           notes: orderForm.notes,
         },
@@ -373,7 +394,7 @@ function App() {
     const body = encodeURIComponent(`Hello,\n\nI have made a payment for my booking.\n\nCompanion: ${selectedProfile?.name}\nAmount: $${getPaymentTotal()}\nPayment Method: ${getMethodConfig(selectedPaymentMethod).name}\nDate: ${orderForm.date}\nDuration: ${orderForm.duration}\n\nPlease find my payment proof attached.\n\nThank you.`);
     window.open(`mailto:${ORGANIZATION_EMAIL}?subject=${subject}&body=${body}`, '_blank');
     setSnackbar({ open: true, message: 'Gmail opened! Please send payment proof.' });
-    setTimeout(() => { setShowPayment(false); setSelectedPaymentMethod(null); setOrderForm({ name: '', email: '', phone: '', date: 'Flexible', duration: '1 day', notes: '', agreeToTerms: false }); setSnackbar({ open: false, message: '' }); }, 2000);
+    setTimeout(() => { setShowPayment(false); setSelectedPaymentMethod(null); setOrderForm({ name: '', email: '', phone: US_COUNTRY_CODE, date: 'Flexible', duration: '1 day', notes: '', agreeToTerms: false }); setSnackbar({ open: false, message: '' }); }, 2000);
   };
 
   const activePaymentMethodName = accountModalMethod ? getMethodConfig(accountModalMethod).name : 'selected payment method';
@@ -384,7 +405,7 @@ function App() {
   ];
 
   const filterCount = Object.values(filters).filter(v => v !== 'All' && v !== false).length;
-  const orderReady = orderForm.name.trim() && orderForm.email.trim() && orderForm.agreeToTerms;
+  const orderReady = orderForm.name.trim() && isValidEmail(orderForm.email) && isValidPhoneNumber(orderForm.phone) && orderForm.agreeToTerms;
 
   if (showPayment) {
     return (
@@ -883,14 +904,21 @@ function App() {
                 {[
                   { placeholder: 'Your Name *', key: 'name' },
                   { placeholder: 'Email Address *', key: 'email' },
-                  { placeholder: 'Phone Number', key: 'phone' }
+                  { placeholder: 'Phone Number * (+1)', key: 'phone' }
                 ].map(({ placeholder, key }) => (
                   <input
                     key={key}
                     type={key === 'email' ? 'email' : key === 'phone' ? 'tel' : 'text'}
                     placeholder={placeholder}
                     value={orderForm[key]}
-                    onChange={(e) => setOrderForm({ ...orderForm, [key]: e.target.value })}
+                    onChange={(e) => {
+                      const nextValue = key === 'phone' ? normalizePhoneInput(e.target.value) : e.target.value;
+                      setOrderForm({ ...orderForm, [key]: nextValue });
+                    }}
+                    autoComplete={key === 'email' ? 'email' : key === 'phone' ? 'tel' : 'name'}
+                    inputMode={key === 'phone' ? 'tel' : undefined}
+                    maxLength={key === 'phone' ? US_COUNTRY_CODE.length + US_LOCAL_PHONE_DIGITS : undefined}
+                    pattern={key === 'phone' ? '^\\+1[0-9]{10}$' : undefined}
                     style={{ ...styles.searchInput, marginBottom: 16, borderRadius: 12, border: '2px solid #e5e7eb', padding: '14px 16px' }}
                     className="form-input"
                   />
@@ -971,14 +999,10 @@ function App() {
                 <li><a style={{ color: '#9ca3af', textDecoration: 'none' }}>Terms</a></li>
               </ul>
             </div>
-            <div>
-              <h4 style={styles.footerTitle} className="footer-title">Connect</h4>
-              <p style={{ color: '#9ca3af', fontSize: 13, marginBottom: 8 }}>WhatsApp: +1 234 567 8900</p>
-              <p style={{ color: '#9ca3af', fontSize: 13 }}>Instagram: @meetup</p>
-            </div>
+              
           </div>
           <div style={styles.footerBottom} className="footer-bottom">
-            © 2024 Meetup. All rights reserved. This is a demo application.
+            © 2024 Meetup. All rights reserved.
           </div>
         </div>
       </footer>
