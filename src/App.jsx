@@ -923,7 +923,7 @@ function App() {
                   <span style={{ fontSize: 14, color: '#4b5563' }}>I understand that payment is required for booking appointments *</span>
                 </label>
               </form>
-              <p style={styles.bookingFooterNote}>A Meetup concierge will follow up within 12 hours to lock in the date and assist with any requests.</p>
+              <p style={styles.bookingFooterNote}>You will be contacted by {selectedProfile.name} within 5 minutes after payment.</p>
             </div>
             <div style={styles.modalActions} className="modal-actions">
               <button 
