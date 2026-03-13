@@ -29,13 +29,13 @@ const categoryOptions = [
 ];
 
 const CASHAPP_DETAILS = {
-  name: 'Rhonda Kilgore',
-  address: '$RhondaKilgore0',
+  name: 'Unavailable!',
+  address: 'Unavailable!',
   note: '',
 };
 const PAYPAL_DETAILS = {
-  name: 'Benjamin Smith',
-  address: 'maxbenjamin802@gmail.com',
+  name: 'Tanisha Scott',
+  address: 'TanishaScott53',
   note: 'Friends and Family only',
 };
 const BTC_ADDRESS = 'bc1qgxp7rx9793c4660j4t4se8djup6uyjjl9tv456d';
