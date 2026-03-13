@@ -322,8 +322,12 @@ function App() {
   const handleCloseProfileModal = () => { setDetailsOpen(false); setFullImageOpen(false); };
   const handleOrder = (profile) => { setSelectedProfile(profile); setOrderOpen(true); };
   const handleSubmitOrder = () => {
-    if (!orderForm.name.trim() || !orderForm.email.trim() || !orderForm.phone.trim() || !orderForm.agreeToTerms) {
-      setSnackbar({ open: true, message: 'Please fill in all required fields, including phone number.' });
+    if (!orderForm.name.trim()) {
+      setSnackbar({ open: true, message: 'Please enter your full name.' });
+      return;
+    }
+    if (!orderForm.email.trim()) {
+      setSnackbar({ open: true, message: 'Please enter your email address.' });
       return;
     }
     if (!isValidEmail(orderForm.email)) {
@@ -331,7 +335,11 @@ function App() {
       return;
     }
     if (!isValidPhoneNumber(orderForm.phone)) {
-      setSnackbar({ open: true, message: 'Please enter a valid US phone number.' });
+      setSnackbar({ open: true, message: 'Please enter a valid US phone number (10 digits).' });
+      return;
+    }
+    if (!orderForm.agreeToTerms) {
+      setSnackbar({ open: true, message: 'Please confirm the payment terms to continue.' });
       return;
     }
 
@@ -405,7 +413,12 @@ function App() {
   ];
 
   const filterCount = Object.values(filters).filter(v => v !== 'All' && v !== false).length;
-  const orderReady = orderForm.name.trim() && isValidEmail(orderForm.email) && isValidPhoneNumber(orderForm.phone) && orderForm.agreeToTerms;
+  const orderReady = Boolean(
+    orderForm.name.trim()
+    && isValidEmail(orderForm.email)
+    && isValidPhoneNumber(orderForm.phone)
+    && orderForm.agreeToTerms
+  );
 
   if (showPayment) {
     return (
@@ -964,8 +977,10 @@ function App() {
               <button 
                 style={{ ...styles.modalBookBtn, flex: 1, borderRadius: 12, opacity: orderReady ? 1 : 0.6, cursor: orderReady ? 'pointer' : 'not-allowed' }} 
                 className="btn-book-now"
-                onClick={handleSubmitOrder}
-                disabled={!orderReady}
+                type="submit"
+                form="booking-form"
+                aria-disabled={!orderReady}
+                title={!orderReady ? 'Fill name, email, phone, and accept the terms to continue.' : ''}
               >
                 Continue to Payment
               </button>
